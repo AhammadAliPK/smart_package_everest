@@ -45,6 +45,11 @@ export async function buildApp(
 ): Promise<FastifyInstance> {
   const app = Fastify({
     logger: options.logger ?? true,
+    // Fastify's default Ajv strips unknown properties (removeAdditional),
+    // which would silently accept bodies our schemas declare closed with
+    // `additionalProperties: false`. Reject them instead: a malformed body
+    // must surface as 400 VALIDATION_ERROR (AD-7), not slip through trimmed.
+    ajv: { customOptions: { removeAdditional: false } },
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   const prisma = options.prisma ?? createPrismaClient(env.databaseUrl);
