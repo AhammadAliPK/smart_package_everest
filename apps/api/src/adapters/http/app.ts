@@ -2,14 +2,17 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import type { LockerRepository } from '../../application/ports/locker-repository.js';
+import type { PackageRepository } from '../../application/ports/package-repository.js';
 import type { Env } from '../../config/env.js';
 import type { PrismaClient } from '../db/generated/prisma/client.js';
 import { createPrismaClient } from '../db/prisma.js';
 import { PrismaLockerRepository } from '../db/locker-repository.js';
+import { PrismaPackageRepository } from '../db/package-repository.js';
 import { registerErrorMapper } from './error-mapper.js';
 import { registerOpenApi } from './plugins/openapi.js';
 import { healthRoutes } from './routes/health.js';
 import { lockerRoutes } from './routes/lockers.js';
+import { packageRoutes } from './routes/packages.js';
 
 /** Options for {@link buildApp}. */
 export interface BuildAppOptions {
@@ -24,6 +27,7 @@ export interface BuildAppOptions {
    * Prisma adapter from the validated `DATABASE_URL`.
    */
   readonly lockerRepository?: LockerRepository;
+  readonly packageRepository?: PackageRepository;
   readonly prisma?: PrismaClient;
 }
 
@@ -45,6 +49,8 @@ export async function buildApp(
   const prisma = options.prisma ?? createPrismaClient(env.databaseUrl);
   const lockerRepository =
     options.lockerRepository ?? new PrismaLockerRepository(prisma);
+  const packageRepository =
+    options.packageRepository ?? new PrismaPackageRepository(prisma);
 
   app.addHook('onClose', async () => {
     await prisma.$disconnect();
@@ -59,6 +65,7 @@ export async function buildApp(
 
   await app.register(healthRoutes);
   await app.register(lockerRoutes, { lockerRepository });
+  await app.register(packageRoutes, { packageRepository });
 
   return app;
 }
