@@ -212,7 +212,13 @@ async function retrieveWithin(
   }
 
   const { package_id: packageId, stored_at: storedAt } = stored[0]!;
-  const retrievedAt = new Date();
+
+  // One clock for both pricing endpoints: `storedAt` is written by Postgres
+  // (`default(now())`), so `retrievedAt` is read from Postgres too — mixing
+  // in the JS clock would let a few ms of skew tip an exact 24h stay into a
+  // second day (AD-5 boundary). `now()` is the transaction start instant.
+  const clock = await tx.$queryRaw<{ now: Date }[]>`SELECT now()`;
+  const retrievedAt = clock[0]!.now;
 
   // AD-4: occupancy changes only through a compare-and-swap. Holding the row
   // lock from the join the count must be 1 — anything else rolls back.
