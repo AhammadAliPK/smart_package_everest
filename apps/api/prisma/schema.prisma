@@ -1,0 +1,23 @@
+// Prisma schema — datasource + generator only (AD-8).
+//
+// Deliberately EMPTY of models: the Locker and StoredPackage tables arrive with
+// the stories that need them (1.2 / 1.4). The schema is versioned from day one
+// so `pnpm turbo run db:migrate` applies a real, committed migration history
+// against `postgres:18-alpine`.
+//
+// Postgres 18 is the only durable state; every future change ships as a
+// `prisma migrate` file committed with the story that introduces it, and is
+// applied via `prisma migrate deploy` (never `db push`) — see AD-8.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/adapters/db/generated/prisma"
+}
+
+// Prisma 7: the connection URL lives in `prisma.config.ts` (datasource.url),
+// not in the schema. The URL still comes from the DATABASE_URL env var, which
+// the API validates once at boot (see src/config/env.ts).
+
+datasource db {
+  provider = "postgresql"
+}

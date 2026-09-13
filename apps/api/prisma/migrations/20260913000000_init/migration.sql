@@ -1,0 +1,5 @@
+-- Initial migration: establishes the migration history (AD-8).
+--
+-- No tables yet: Locker arrives with Story 1.2 and StoredPackage with Story
+-- 1.4. This migration exists so `prisma migrate deploy` is a real, working
+-- step from the first commit and every later schema change is versioned.
