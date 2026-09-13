@@ -37,11 +37,40 @@ model Locker {
 
   size LockerSize
 
-  // Set when a package is stored, cleared on retrieval. CAS target for the
-  // store transaction (AD-4) — unused until Story 1.4; the partial unique
-  // index that makes "one package per locker" a schema fact arrives with
-  // StoredPackage in Story 1.4.
+  // The id of the StoredPackage currently inside (set on store, cleared on
+  // retrieval). CAS target of the store transaction (AD-4); the partial
+  // unique index on this column (see the create_stored_package migration)
+  // makes "one package per locker" a schema fact, not just code (AD-8).
   occupiedBy String? @map("occupied_by")
 
   @@map("locker")
+}
+
+// A stored package's lifecycle (Epic 2 flips it to RETRIEVED).
+enum PackageStatus {
+  STORED
+  RETRIEVED
+}
+
+// The package record created by the Story 1.4 store transaction. The link to
+// its locker is `locker.occupied_by` (one direction only, per the spine's ER
+// seed); `retrievedAt` / the RETRIEVED status stay unused until Epic 2.
+model StoredPackage {
+  id String @id @default(cuid())
+
+  // Unique among STORED packages — enforced by the partial unique index in
+  // the create_stored_package migration (AD-6), not by a plain unique here.
+  pickupCode String @map("pickup_code")
+
+  // Optional free-text reference the delivery agent may attach (FR3).
+  customerRef String? @map("customer_ref")
+
+  // Exact storage time, captured now and consumed by Epic 2's pricing (AD-5).
+  storedAt DateTime @default(now()) @map("stored_at")
+
+  // Unused until Epic 2 retrieval.
+  retrievedAt DateTime? @map("retrieved_at")
+  status      PackageStatus @default(STORED)
+
+  @@map("stored_package")
 }
