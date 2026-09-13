@@ -19,6 +19,10 @@ WORKDIR /repo
 RUN npm install --global pnpm@12.4.1 \
   && apk add --no-cache openssl
 COPY --from=pruner /repo/out/json/ .
+# The schema must exist before install: pnpm now triggers `prisma generate`
+# as @locker/api's postinstall (see its package.json), and generate reads
+# prisma/schema.prisma. Everything else from out/full is copied right after.
+COPY --from=pruner /repo/out/full/apps/api/prisma ./apps/api/prisma
 RUN pnpm install --frozen-lockfile
 COPY --from=pruner /repo/out/full/ .
 # turbo prune copies workspace packages + manifests, but not arbitrary root
