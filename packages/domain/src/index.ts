@@ -12,4 +12,15 @@
 /** Package identity marker; exists only so this workspace compiles and ships a real entry point. */
 export const DOMAIN_PACKAGE_NAME = '@locker/domain' as const;
 
+export {
+  SIZE_RANK,
+  pickSmallestFitting,
+  type FreeLocker,
+} from './allocation.js';
+export {
+  PICKUP_CODE_ALPHABET,
+  PICKUP_CODE_LENGTH,
+  generatePickupCode,
+  type RandomSource,
+} from './pickup-code.js';
 export { LOCKER_SIZES, isLockerSize, type LockerSize } from './locker-size.js';
