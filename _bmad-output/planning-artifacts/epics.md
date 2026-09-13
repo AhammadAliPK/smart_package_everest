@@ -61,7 +61,7 @@ NFR6: Process — git repository initialized before build with a meaningful per-
 - **AD-9:** A locker has exactly one identifier — its cuid — carried as `lockerId` in every payload; no secondary display code in v1.
 - **AD-10:** `apps/web` computes no domain outcomes (every charge/assignment displayed comes from an API response); API types generated from OpenAPI, never hand-copied; `@locker/ui` imports no API client.
 - **Stack pins:** TypeScript 7.0.2, Node 24 LTS (`node:24-alpine`), Fastify 5.12.4, TypeBox 1.3.30 (+type-provider 6.1.0), @fastify/swagger 9.8.1, swagger-ui 6.1.1, Prisma 7.10.0 (do not take 8.x RC), PostgreSQL 18 (`postgres:18-alpine`), Vitest 5.0.0, Turborepo 2.10.12, pnpm 12.4.1, React 19.3.0, Vite 8.3.0, Tailwind CSS 4.3.3, shadcn CLI 4.21.0.
-- **Infra/deploy:** docker-compose for local dev/test (postgres + api); `apps/api` multi-stage Dockerfile via `turbo prune` → Railway (Postgres provisioned there, `DATABASE_URL` injected); `apps/web` nginx static → Railway; `GET /health`.
+- **Infra/deploy:** docker-compose for local dev/test (postgres + api); `apps/api` multi-stage Dockerfile via `turbo prune` → Render (Postgres provisioned there, `DATABASE_URL` injected); `apps/web` nginx static → Render; `GET /health`.
 - **Conventions:** kebab-case files, PascalCase types, singular PascalCase Prisma models, snake_case columns; cuid IDs; enums SMALL/MEDIUM/LARGE, STORED/RETRIEVED; ISO-8601 UTC timestamps; money as integer units; JSON request logging (Fastify built-in); no auth in v1.
 - **Test infrastructure:** Vitest suites against the compose Postgres, isolated per suite (truncate vs transaction-rollback strategy owned by the build stories).
 - **README deliverable (HR terms):** README covering approach, design decisions, assumptions, trade-offs, and future improvements, plus an AI-use disclosure section (tools used, how used, which portions AI-assisted, prompts/workflow).
@@ -138,7 +138,7 @@ Anyone can open the app and pick a role at the chooser landing. Delivery agents 
 **Builds on:** Epics 1–2. Standalone.
 
 ### Epic 5: Run anywhere & submission readiness
-An evaluator (or HR) can clone the repo, run the full stack locally via docker-compose, see it deployed on Railway, and read a README covering approach, design decisions, assumptions, trade-offs, and future improvements — including the required AI-use disclosure (tools, how used, AI-assisted portions, workflow).
+An evaluator (or HR) can clone the repo, run the full stack locally via docker-compose, see it deployed on Render, and read a README covering approach, design decisions, assumptions, trade-offs, and future improvements — including the required AI-use disclosure (tools, how used, AI-assisted portions, workflow).
 **NFRs covered:** NFR5, NFR6 (+ README deliverable from Additional Requirements)
 **Builds on:** Epics 1–4. Standalone.
 
@@ -583,7 +583,7 @@ So that the UI never traps me, lies to me, or becomes unreadable.
 
 An evaluator (or HR) can clone the repo, run the full stack locally, see it deployed, and read a README — with the required AI-use disclosure.
 
-### Story 5.1: Production containers and Railway deployment
+### Story 5.1: Production containers and Render deployment
 
 As an evaluator,
 I want the system deployed and reachable, and reproducible as containers,
@@ -601,7 +601,7 @@ So that I can verify it works in a production-like environment, not just on the 
 **When** its Docker image is built (static build served by nginx)
 **Then** it builds reproducibly and serves the SPA with client-side routing intact (deep links like `/retrieve` return the app, not 404)
 
-**Given** Railway with a provisioned PostgreSQL
+**Given** Render with a provisioned PostgreSQL
 **When** both services are deployed (`DATABASE_URL` injected, `STORAGE_FEE_BASE` configurable)
 **Then** `GET /health` on the live API URL returns ok, the web app loads, and a store→retrieve round trip succeeds against the deployed stack; the live URLs are recorded in the README
 

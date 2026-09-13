@@ -86,7 +86,7 @@ Dependency direction is strictly inward: `adapters → application → domain`. 
 ### AD-8 — PostgreSQL is the only state; schema moves only via `prisma migrate`
 - **Binds:** all
 - **Prevents:** hidden in-process state that breaks multi-instance correctness (Level 4) and undocumented schema drift
-- **Rule:** All durable state lives in Postgres (Prisma). No module-level mutable stores. One package per locker is enforced in the schema (partial unique index on the occupied-by column), not just in code. Schema changes ship as migration files committed with the story that needs them; production applies them via `prisma migrate deploy` in the container entrypoint (Railway provisions the Postgres and injects `DATABASE_URL`; the app never boots against an unmigrated schema). **[ADOPTED]** (Postgres: user decision)
+- **Rule:** All durable state lives in Postgres (Prisma). No module-level mutable stores. One package per locker is enforced in the schema (partial unique index on the occupied-by column), not just in code. Schema changes ship as migration files committed with the story that needs them; production applies them via `prisma migrate deploy` in the container entrypoint (the deploy platform — Render — provisions the Postgres and injects `DATABASE_URL`; the app never boots against an unmigrated schema). **[ADOPTED]** (Postgres: user decision)
 
 ### AD-9 — One locker identifier: the cuid `lockerId`
 - **Binds:** LVL-1-storage, LVL-2-retrieval
@@ -143,9 +143,9 @@ smart-package-everest/            # pnpm workspace + Turborepo
         config/                   # env parsing (single boot-time validation)
       prisma/                     # schema.prisma + migrations/
       test/                       # Vitest suites (per-level), test-db helpers
-      Dockerfile                  # multi-stage via `turbo prune`, target: Railway
+      Dockerfile                  # multi-stage via `turbo prune`, target: Render
     web/                          # React SPA (Vite): role screens, API client,
-                                  #   nginx Dockerfile -> Railway static deploy
+                                  #   nginx Dockerfile -> Render static deploy
   packages/
     domain/                       # @locker/domain — entities, allocation rule,
                                   #   StoragePricingPolicy, pickup codes; zero deps
@@ -184,7 +184,7 @@ erDiagram
 | LVL-4-concurrency (parallel stores, no double-assignment) | `StorePackage` transaction + Prisma repo | AD-3, AD-8 |
 | Web UI (agent console, customer retrieval) | `apps/web` (Vite SPA) + generated OpenAPI client | AD-10, AD-1, AD-7 |
 | Component library (shadcn/Tailwind, product theme) | `packages/ui` (`@locker/ui`) | AD-10 |
-| Operational envelope (run locally, deploy) | Turborepo pipelines + `apps/api/Dockerfile` (turbo prune) → Railway; `apps/web` nginx static → Railway; docker-compose for dev/test | AD-8, Stack table |
+| Operational envelope (run locally, deploy) | Turborepo pipelines + `apps/api/Dockerfile` (turbo prune) → Render; `apps/web` nginx static → Render; docker-compose for dev/test | AD-8, Stack table |
 
 ## Deferred
 
