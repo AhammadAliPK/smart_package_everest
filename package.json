@@ -1,0 +1,26 @@
+{
+  "name": "smart-package-everest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Smart Package Locker Management System — pnpm + Turborepo monorepo",
+  "packageManager": "pnpm@12.4.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "dev": "turbo run dev",
+    "db:migrate": "turbo run db:migrate",
+    "check:boundaries": "node scripts/check-boundaries.mjs"
+  },
+  "devDependencies": {
+    "@babel/core": "8.0.5",
+    "@babel/eslint-parser": "8.0.5",
+    "@babel/plugin-syntax-typescript": "8.0.3",
+    "eslint": "10.10.0",
+    "turbo": "2.10.12"
+  }
+}

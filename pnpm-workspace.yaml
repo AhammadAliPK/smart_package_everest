@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Dependency build scripts approved for execution (pnpm >= 10 blocks them by
+# default). Each is required for a working toolchain:
+#   - prisma / @prisma/engines — downloads the query + schema engines so
+#     `prisma migrate deploy` works (AD-8)
+#   - esbuild — installs its platform binary for tsx/vitest transforms
+allowBuilds:
+  "@prisma/engines": true
+  esbuild: true
+  prisma: true

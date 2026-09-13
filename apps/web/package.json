@@ -1,0 +1,12 @@
+{
+  "name": "@locker/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "React SPA (Vite) over the REST API — Epic 4 owns its internals. Placeholder until then (AD-10).",
+  "scripts": {
+    "build": "node -e \"console.log('@locker/web: placeholder — Epic 4 owns apps/web internals (AD-10)')\"",
+    "test": "node -e \"console.log('@locker/web: placeholder — no tests until Epic 4')\"",
+    "lint": "node -e \"console.log('@locker/web: placeholder — no source to lint until Epic 4')\""
+  }
+}

@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+**/coverage
+**/.turbo
+**/.env
+**/.env.*
+out
+.git
+.claude
+_bmad-output
+docs
+*.log
+.DS_Store
