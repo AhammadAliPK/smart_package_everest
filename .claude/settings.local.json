@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mdls -name kMDItemNumberOfPages \"/Users/ahammadali/dev/freelance/smart_package_everest/docs/Smart Package Everest Coding challenge.pdf\")",
+      "Bash(python3 -c \"import pypdf\")"
+    ]
+  }
+}
