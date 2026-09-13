@@ -1,9 +1,16 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["DATABASE_URL", "PORT", "STORAGE_FEE_BASE", "NODE_ENV", "CI"],
+  "globalEnv": [
+    "DATABASE_URL",
+    "TEST_DATABASE_URL",
+    "PORT",
+    "STORAGE_FEE_BASE",
+    "NODE_ENV",
+    "CI"
+  ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "db:generate"],
       "outputs": ["dist/**"]
     },
     "test": {
@@ -21,6 +28,9 @@
       "persistent": true
     },
     "db:migrate": {
+      "cache": false
+    },
+    "db:generate": {
       "cache": false
     }
   }

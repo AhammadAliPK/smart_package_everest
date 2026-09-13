@@ -83,6 +83,9 @@ export default [
       '**/coverage/**',
       '**/.turbo/**',
       '**/__fixtures__/**',
+      // Generated code (`prisma generate` output) carries its own in-file
+      // disables; linting it only produces directive noise.
+      '**/src/adapters/db/generated/**',
     ],
   },
   tsParser,

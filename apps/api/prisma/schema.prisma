@@ -1,8 +1,9 @@
-// Prisma schema — datasource + generator only (AD-8).
+// Prisma schema — datasource + generator + Locker (AD-8).
 //
-// Deliberately EMPTY of models: the Locker and StoredPackage tables arrive with
-// the stories that need them (1.2 / 1.4). The schema is versioned from day one
-// so `pnpm turbo run db:migrate` applies a real, committed migration history
+// Story 1.2 introduces the first table: `locker`. StoredPackage arrives with
+// Story 1.4, together with the partial unique index on `occupied_by` that
+// enforces one package per locker. The schema is versioned from day one so
+// `pnpm turbo run db:migrate` applies a real, committed migration history
 // against `postgres:18-alpine`.
 //
 // Postgres 18 is the only durable state; every future change ships as a
@@ -20,4 +21,27 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// The declared locker sizes (FR1). Mirrors `LOCKER_SIZES` in @locker/domain,
+// which stays the single source of truth the API validates against; the enum
+// exists so Postgres itself refuses a size outside the vocabulary.
+enum LockerSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+model Locker {
+  id String @id @default(cuid())
+
+  size LockerSize
+
+  // Set when a package is stored, cleared on retrieval. CAS target for the
+  // store transaction (AD-4) — unused until Story 1.4; the partial unique
+  // index that makes "one package per locker" a schema fact arrives with
+  // StoredPackage in Story 1.4.
+  occupiedBy String? @map("occupied_by")
+
+  @@map("locker")
 }
