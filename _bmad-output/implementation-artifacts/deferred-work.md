@@ -33,6 +33,7 @@ Post-feature hardening backlog. Deferred by user decision 2026-09-13: build all 
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-1-monorepo-scaffold-with-a-running-health-checked-api.md`
   summary: Container-ops bundle (Story 5.1) — `restart: unless-stopped`, `: ${DATABASE_URL:?}` guard before `prisma migrate deploy`, healthcheck `start_period`, un-hardcode PORT in healthcheck/EXPOSE.
   evidence: Edge-case-hunter findings 17–20; first transient migrate failure or slow boot currently kills the container with no recovery.
+  done: ABSORBED BY STORY 5.1 (2026-09-14, spec-5-1-5-2). `restart: unless-stopped` on api+web; DATABASE_URL guard in the runner CMD (and `:?` interpolation guards in compose); `start_period: 15s` on the api healthcheck; PORT via runner `ENV PORT` (Render injects, app obeys, EXPOSE stays 3000 as documentation).
 
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-1-monorepo-scaffold-with-a-running-health-checked-api.md`
   summary: Boundary-lint strictness — add `'fastify/*'` and `'@sinclair/typebox/*'` subpath patterns to the AD-2 zones; add a `timeout` to `check-boundaries.mjs`'s `spawnSync`.
@@ -41,3 +42,4 @@ Post-feature hardening backlog. Deferred by user decision 2026-09-13: build all 
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-1-monorepo-scaffold-with-a-running-health-checked-api.md`
   summary: Turbo emits missing-declared-output warnings for `@locker/web`'s placeholder build; Dockerfile's `npm install --global` installs could be digest-pinned.
   evidence: Blind-hunter findings (warning noise; supply-chain drift). Fold into Story 5.1 container hardening.
+  done: RESOLVED BY STORY 5.1 (2026-09-14): `@locker/web#build` no longer emits missing-declared-output (only the pre-existing `#test` coverage-glob warnings remain, all packages); global installs settle at exact-version pinning (npm cannot digest-pin globals), and the runner's global `prisma@7.10.0` was dropped entirely in favor of the exact-pinned local dependency.

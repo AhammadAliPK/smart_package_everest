@@ -1,0 +1,27 @@
+# Serves the built Everest Lockers SPA.
+#
+# ${PORT} is filled in at container start by the official nginx image's
+# envsubst mechanism (templates under /etc/nginx/templates become conf files
+# in /etc/nginx/conf.d). The image sets PORT=80 as the docker compose default;
+# Render injects its own PORT and the template follows it. `$uri` is nginx
+# syntax and survives envsubst, which only rewrites variables that exist in
+# the container environment.
+
+server {
+  listen ${PORT};
+  server_name _;
+
+  root  /usr/share/nginx/html;
+  index index.html;
+
+  # The bundle is static and content-hashed by Vite; compress the text.
+  gzip on;
+  gzip_min_length 1024;
+  gzip_types text/css application/javascript application/json image/svg+xml;
+
+  # SPA routing: deep links (/retrieve, /agent) serve the app shell instead
+  # of a 404 — the router owns every path that is not a real file.
+  location / {
+    try_files $uri /index.html;
+  }
+}

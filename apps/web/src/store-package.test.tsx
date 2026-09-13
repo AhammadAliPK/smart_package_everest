@@ -18,7 +18,7 @@ const station: LockersReply = {
   ],
 };
 
-const stored: StorePackageReply = { lockerId: 'clx8m2qk4', pickupCode: 'A7BX-K9ZM' };
+const stored: StorePackageReply = { lockerId: 'M4XT2B', pickupCode: 'A7BX-K9ZM' };
 
 /** The client always throws ApiError; tests fake the same shape. */
 function apiError(code: string, status: number): unknown {
@@ -80,8 +80,12 @@ describe('store package', () => {
 
     const card = await screen.findByRole('group', { name: /package stored/i });
     expect(card).toHaveFocus();
-    expect(within(card).getByText('clx8m2qk4')).toBeInTheDocument();
-    expect(within(card).getByText('A7BX-K9ZM')).toBeInTheDocument();
+    expect(within(card).getByText('M4XT2B')).toBeInTheDocument();
+    // Fixed-format values never fold — the Copy button yields instead
+    // (manual-smoke finding: the code used to wrap at the hyphen).
+    const codeValue = within(card).getByText('A7BX-K9ZM');
+    expect(codeValue).toBeInTheDocument();
+    expect(codeValue).toHaveClass('whitespace-nowrap');
 
     // The form clears for the next package; the grid refreshed.
     expect(

@@ -35,7 +35,7 @@ async function submitStore(user: ReturnType<typeof userEvent.setup>) {
 
 /** Drive the retrieval form to a submit. */
 async function submitRetrieve(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText(/locker id/i), 'clx8m2qk4');
+  await user.type(screen.getByLabelText(/locker id/i), 'K7Q4M2');
   await user.type(screen.getByLabelText('code character 1'), 'A7BXK9ZM');
   await user.click(screen.getByRole('button', { name: /open my locker/i }));
 }

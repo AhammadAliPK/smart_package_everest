@@ -1,7 +1,9 @@
 /**
  * CodeInput (EXPERIENCE.md component patterns) — the 8 pickup-code cells.
  *
- * `XXXX-XXXX` with a display-only dash. Auto-advance, auto-uppercase,
+ * `XXXX-XXXX` with a display-only dash — two real chunks, so below 480px
+ * they stack 4-over-4 instead of ragged-wrapping mid-chunk. Auto-advance,
+ * auto-uppercase,
  * paste-tolerant: a pasted 8-char string fills every cell. The alphabet
  * excludes `0/O/1/I` — typing one is rejected with a gentle inline hint
  * (announced politely), never an error state. Cells are thumb-sized
@@ -20,6 +22,62 @@ const BANNED = new Set(['0', 'O', '1', 'I']);
 const LENGTH = 8;
 
 const HINT = 'Codes don’t use 0, O, 1 or I.';
+
+interface CellProps {
+  index: number;
+  value: string;
+  disabled: boolean;
+  invalid: boolean;
+  describedBy?: string;
+  register: (element: HTMLInputElement | null) => void;
+  onInput: (index: number, event: React.FormEvent<HTMLInputElement>) => void;
+  onKeyDown: (index: number, event: React.KeyboardEvent<HTMLInputElement>) => void;
+  onPaste: (index: number, event: React.ClipboardEvent<HTMLInputElement>) => void;
+}
+
+/** One pickup-code cell — the chunk containers own the layout, this owns
+ *  the behavior (advance, backspace, paste, banned-char hint). */
+function Cell({
+  index,
+  value,
+  disabled,
+  invalid,
+  describedBy,
+  register,
+  onInput,
+  onKeyDown,
+  onPaste,
+}: CellProps) {
+  return (
+    <input
+      ref={register}
+      type="text"
+      inputMode="text"
+      autoComplete="off"
+      maxLength={1}
+      value={value}
+      disabled={disabled}
+      aria-label={`code character ${index + 1}`}
+      aria-invalid={invalid || undefined}
+      aria-describedby={describedBy}
+      onFocus={(event) => event.currentTarget.select()}
+      onChange={(event) => onInput(index, event)}
+      onKeyDown={(event) => onKeyDown(index, event)}
+      onPaste={(event) => onPaste(index, event)}
+      className={cn(
+        // Fluid within a band: grows to fill the chunk, floored at the 44px
+        // touch-target minimum, capped at 56px so a wide card doesn't turn
+        // the cells into balloons.
+        'h-14 min-w-11 max-w-14 flex-1 rounded-sm border border-border bg-background',
+        'text-center font-mono text-2xl uppercase text-foreground',
+        'transition-[border-color] duration-150',
+        'focus:border-ring focus:outline-none',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        'aria-invalid:border-ring',
+      )}
+    />
+  );
+}
 
 export interface CodeInputProps {
   /** Exactly 8 entries; `''` marks an empty cell. */
@@ -124,45 +182,57 @@ export function CodeInput({
 
   return (
     <div className={className}>
-      <div className="flex flex-wrap items-center gap-2">
-        {Array.from({ length: LENGTH }, (_, index) => (
-          <React.Fragment key={index}>
-            {index === LENGTH / 2 ? (
-              <span
-                aria-hidden="true"
-                className="font-mono text-[22px] text-muted-foreground"
-              >
-                –
-              </span>
-            ) : null}
-            <input
-              ref={(element) => {
-                cells.current[index] = element;
-              }}
-              type="text"
-              inputMode="text"
-              autoComplete="off"
-              maxLength={1}
-              value={value[index]}
+      {/* DESIGN.md: "chunked `XXXX-XXXX`" — two real chunks, never a ragged
+          flex-wrap. Cells flex within a band — floored at the 44px
+          touch-target minimum, capped at 56px so they never balloon on a
+          wide card — and each chunk centers, so the control composes
+          cleanly at every section width and cannot overflow it. ≥480px: one
+          row, chunks joined by the display dash. Below that the chunks
+          stack 4-over-4 (eight cells can't clear the 44px floor in a phone
+          column); the between-chunks dash hides when they stack. */}
+      <div className="flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-center">
+        <div className="flex flex-1 justify-center gap-2">
+          {Array.from({ length: LENGTH / 2 }, (_, offset) => (
+            <Cell
+              key={offset}
+              index={offset}
+              value={value[offset] ?? ''}
               disabled={disabled}
-              aria-label={`code character ${index + 1}`}
-              aria-invalid={invalid || undefined}
-              aria-describedby={describedBy}
-              onFocus={(event) => event.currentTarget.select()}
-              onChange={(event) => handleInput(index, event)}
-              onKeyDown={(event) => handleKeyDown(index, event)}
-              onPaste={(event) => handlePaste(index, event)}
-              className={cn(
-                'h-14 w-11.5 rounded-sm border border-border bg-background',
-                'text-center font-mono text-2xl uppercase text-foreground',
-                'transition-[border-color] duration-150',
-                'focus:border-ring focus:outline-none',
-                'disabled:cursor-not-allowed disabled:opacity-50',
-                'aria-invalid:border-ring',
-              )}
+              invalid={invalid}
+              describedBy={describedBy}
+              register={(element) => {
+                cells.current[offset] = element;
+              }}
+              onInput={handleInput}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
             />
-          </React.Fragment>
-        ))}
+          ))}
+        </div>
+        <span
+          aria-hidden="true"
+          className="hidden px-1 font-mono text-[22px] text-muted-foreground min-[480px]:block"
+        >
+          –
+        </span>
+        <div className="flex flex-1 justify-center gap-2">
+          {Array.from({ length: LENGTH / 2 }, (_, offset) => (
+            <Cell
+              key={offset}
+              index={LENGTH / 2 + offset}
+              value={value[LENGTH / 2 + offset] ?? ''}
+              disabled={disabled}
+              invalid={invalid}
+              describedBy={describedBy}
+              register={(element) => {
+                cells.current[LENGTH / 2 + offset] = element;
+              }}
+              onInput={handleInput}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+            />
+          ))}
+        </div>
       </div>
       <p
         role="status"

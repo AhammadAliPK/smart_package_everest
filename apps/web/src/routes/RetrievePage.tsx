@@ -80,7 +80,7 @@ export function RetrievePage() {
         : null;
 
   return (
-    <section className="mx-auto w-full max-w-[520px] px-margin-mobile py-section md:px-margin-desktop">
+    <section className="mx-auto w-full max-w-[600px] px-margin-mobile py-section md:px-margin-desktop">
       <Eyebrow>Customer pickup</Eyebrow>
       <h1
         ref={titleRef}

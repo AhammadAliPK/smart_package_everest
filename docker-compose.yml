@@ -1,22 +1,29 @@
-# Local development / test runtime (spine: postgres:18-alpine + api).
+# Local development / test runtime (spine: postgres:18-alpine + api + web).
 #
+#   cp .env.example .env            # once: local defaults, no real secrets
 #   docker compose up -d postgres   # Postgres 18 only, for Vitest / local dev
-#   docker compose up --build api   # full stack: migrations + API on :3000
+#   docker compose up --build -d    # full stack: migrations, API :3000, UI :8080
 #
-# The host port for Postgres defaults to 5432 but can be overridden when the
-# machine already runs a Postgres there:  POSTGRES_PORT=55432 docker compose up -d
+# Host ports are parametrized so the stack can run next to dev servers that
+# already hold 3000/8080:
+#   POSTGRES_PORT=55432 API_PORT=3010 WEB_PORT=8090 docker compose up -d
 #
-# Secrets live in .env (see .env.example); the defaults below are the local
-# development credentials and are intentionally not secrets.
+# No credentials live in this file — not even the local dev ones. The Postgres
+# user/password/db are interpolated from `.env` (compose reads it from the
+# project directory automatically) and the stack refuses to start without
+# them. The browser calls the API cross-origin here (:8080 -> :3000, as on
+# Render), so the API gets CORS_ORIGIN for the web origin; the Vite dev proxy
+# needs none of this (same-origin).
 
 services:
   postgres:
     image: postgres:18-alpine
     container_name: locker-postgres
     environment:
-      POSTGRES_USER: locker
-      POSTGRES_PASSWORD: locker
-      POSTGRES_DB: locker
+      # `:?` = fail fast with the fix in the message when .env is missing.
+      POSTGRES_USER: ${POSTGRES_USER:?Copy .env.example to .env (see README)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env (see README)}
+      POSTGRES_DB: ${POSTGRES_DB:?Copy .env.example to .env (see README)}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -24,7 +31,7 @@ services:
       # so pg_upgrade works across mount-point boundaries).
       - locker-pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U locker -d locker"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -34,12 +41,21 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     container_name: locker-api
+    # `unless-stopped` (not `always`): a crashed container recovers on its
+    # own, but an explicit `docker compose stop` keeps things stopped.
+    restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://locker:locker@postgres:5432/locker
+      # Assembled from the same parts the database was created with — the
+      # in-network host is `postgres`, not localhost.
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       PORT: "3000"
       STORAGE_FEE_BASE: "10"
+      # The compose UI at :8080 calls the API at :3000 — a different origin —
+      # so the browser needs the CORS allow-list (unset would keep the plugin
+      # unregistered, which is the right default for the Vite dev proxy).
+      CORS_ORIGIN: http://localhost:8080
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,9 +67,35 @@ services:
           "-e",
           "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
+      # migrate-on-boot is real work on a cold volume; give it room before the
+      # healthcheck starts failing the container.
+      start_period: 15s
       interval: 5s
       timeout: 3s
       retries: 12
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      # Vite reads this at build time and bakes it into the bundle.
+      args:
+        VITE_API_BASE_URL: http://localhost:3000
+    container_name: locker-web
+    restart: unless-stopped
+    environment:
+      PORT: "80"
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 5s
 
 volumes:
   locker-pgdata:

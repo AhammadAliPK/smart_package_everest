@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance } from 'fastify';
+import cors from '@fastify/cors';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import type { LockerRepository } from '../../application/ports/locker-repository.js';
@@ -64,8 +65,17 @@ export async function buildApp(
 
   app.log.debug({ storageFeeBase: env.storageFeeBase }, 'building http app');
 
-  // Cross-cutting first, so every route is covered: AD-7 error envelope and
-  // OpenAPI collection (swagger must be registered before the routes it documents).
+  // Cross-cutting first, so every route is covered: CORS (only when a deploy
+  // actually serves a cross-origin UI — unset leaves local dev, which reaches
+  // the API through the Vite proxy, byte-identical to before), the AD-7 error
+  // envelope, and the OpenAPI collection (swagger must be registered before
+  // the routes it documents).
+  if (env.corsOrigin && env.corsOrigin.length > 0) {
+    await app.register(cors, {
+      origin: [...env.corsOrigin],
+      methods: ['GET', 'POST'],
+    });
+  }
   registerErrorMapper(app);
   await registerOpenApi(app);
 

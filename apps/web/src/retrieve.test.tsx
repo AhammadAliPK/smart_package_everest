@@ -79,6 +79,28 @@ describe('customer retrieval', () => {
     }
   });
 
+  it('chunks the cells XXXX / XXXX — two groups, never a ragged wrap', () => {
+    render(<RetrievePage />);
+
+    const first = screen.getByLabelText('code character 1');
+    const fourth = screen.getByLabelText('code character 4');
+    const fifth = screen.getByLabelText('code character 5');
+    const eighth = screen.getByLabelText('code character 8');
+
+    // Two real chunk containers: 1–4 share one, 5–8 share another, so a
+    // narrow viewport stacks the chunks instead of wrapping mid-code
+    // (44px targets can't sit eight-across in a phone column).
+    expect(first.parentElement).toBe(fourth.parentElement);
+    expect(fifth.parentElement).toBe(eighth.parentElement);
+    expect(first.parentElement).not.toBe(fifth.parentElement);
+
+    // The display dash joins the chunks wide, hides when they stack.
+    const dash = screen.getByText('–');
+    expect(dash).toHaveAttribute('aria-hidden', 'true');
+    expect(dash.className).toContain('hidden');
+    expect(dash.className).toContain('min-[480px]:block');
+  });
+
   it('uppercases the locker id as the customer types', async () => {
     render(<RetrievePage />);
     const user = userEvent.setup();

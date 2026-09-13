@@ -73,14 +73,17 @@ export function ResultCard({ lockerId, pickupCode, className }: ResultCardProps)
       <Eyebrow>Package stored</Eyebrow>
 
       {/* DESIGN.md: "locker ID + code stacked with generous spacing" — the
-          value owns the full card width (AD-9 ids are 25-char cuids, and a
-          side-by-side row pushes them past the border). */}
+          value owns the full card width (AD-9 v1.1 ids are 6 chars, the code
+          is a fixed XXXX-XXXX). Both are fixed-format values the agent
+          photographs: they never wrap (whitespace-nowrap); when the row is
+          too narrow, the Copy button is what yields — flex-wrap drops it to
+          its own line rather than folding the code at the hyphen. */}
       <div className="mt-2.5 border-b border-border pb-3">
         <span className="font-sans text-xs tracking-code uppercase text-muted-foreground">
           Locker
         </span>
-        <div className="mt-1 flex items-center gap-2.5">
-          <span className="min-w-0 flex-1 break-all font-mono text-[20px] font-medium tracking-[0.12em] text-foreground">
+        <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <span className="whitespace-nowrap font-mono text-[20px] font-medium tracking-[0.12em] text-foreground">
             {lockerId}
           </span>
           <CopyButton value={lockerId} label="locker ID" />
@@ -91,8 +94,8 @@ export function ResultCard({ lockerId, pickupCode, className }: ResultCardProps)
         <span className="font-sans text-xs tracking-code uppercase text-muted-foreground">
           Pickup code
         </span>
-        <div className="mt-1 flex items-center gap-2.5">
-          <span className="min-w-0 flex-1 break-all font-mono text-code font-medium tracking-code text-foreground dark:text-butter">
+        <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <span className="whitespace-nowrap font-mono text-code font-medium tracking-code text-foreground dark:text-butter">
             {pickupCode}
           </span>
           <CopyButton value={pickupCode} label="pickup code" />

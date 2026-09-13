@@ -1,0 +1,60 @@
+# Render blueprint — the deployed shape of Everest Lockers (story 5.1).
+#
+#   Render dashboard -> New + -> Blueprint -> point at this repo -> Apply.
+#   Everything here is on the FREE plan. Two things to expect:
+#
+#   - Spin-down: free web services sleep after ~15 minutes idle and take
+#     ~30-60s to wake. The first request after idle being slow is normal.
+#   - The free Postgres is created on the first blueprint apply, which starts
+#     its 30-day free-trial clock — create it when you mean to deploy.
+#
+#   Slug-collision runbook: if `everest-api` / `everest-web` is already taken,
+#   Render serves the service under a suffixed URL instead. Read the real URLs
+#   from the dashboard, update the two literals below
+#   (`VITE_API_BASE_URL` on everest-web, `CORS_ORIGIN` on everest-api) so they
+#   name each other, and redeploy once.
+
+services:
+  # Fastify API from apps/api/Dockerfile — prunes, builds, migrates on boot
+  # (AD-8), then serves. CORS is scoped to the web service's origin.
+  - type: web
+    name: everest-api
+    plan: free
+    runtime: docker
+    # turbo prune needs the repository root as the build context.
+    dockerContext: .
+    dockerfilePath: apps/api/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: everest-db
+          property: connectionString
+      - key: STORAGE_FEE_BASE
+        value: "10"
+      - key: CORS_ORIGIN
+        value: https://everest-web.onrender.com
+        # Same runbook as the web literal: editable in the dashboard without
+        # the next blueprint apply resetting it.
+        sync: false
+
+  # Static SPA from apps/web/Dockerfile — Vite bakes the API URL in at build
+  # time, so this service rebuilds if that value changes. `sync: false` keeps
+  # the value editable in the dashboard at first deploy (slug-collision
+  # runbook above).
+  - type: web
+    name: everest-web
+    plan: free
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: apps/web/Dockerfile
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://everest-api.onrender.com
+        sync: false
+
+databases:
+  - name: everest-db
+    plan: free
+    databaseName: locker
+    user: locker

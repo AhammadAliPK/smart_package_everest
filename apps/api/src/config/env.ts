@@ -19,6 +19,12 @@ export interface Env {
   readonly port: number;
   /** Base storage fee per 24h day, in plain units (AD-5). Default 10. */
   readonly storageFeeBase: number;
+  /**
+   * Origins allowed to call the API cross-origin (CORS). Optional: local
+   * development reaches the API through the Vite proxy (same-origin), so the
+   * CORS plugin is only registered when `CORS_ORIGIN` is set.
+   */
+  readonly corsOrigin?: readonly string[];
 }
 
 /** One invalid environment variable. */
@@ -82,6 +88,50 @@ function readOptionalInteger(
   return parsed;
 }
 
+/** A plausible origin: a scheme of http(s) followed by a host. */
+const ORIGIN_PATTERN = /^https?:\/\//;
+
+/**
+ * Read an optional comma-separated list of http(s) origins.
+ *
+ * Absent, empty, or whitespace-only means "no CORS" — the variable is
+ * optional by design (same-origin deploys need nothing). A list whose parts
+ * are not plausible origins is a boot error, reported with the offending
+ * values so the operator can fix the one bad entry.
+ */
+function readOptionalOriginList(
+  issues: EnvIssue[],
+  source: Record<string, string | undefined>,
+  variable: string,
+): string[] | undefined {
+  const raw = source[variable];
+  if (raw === undefined || raw.trim() === '') {
+    return undefined;
+  }
+
+  const origins = raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part !== '');
+
+  if (origins.length === 0) {
+    return undefined;
+  }
+
+  const invalid = origins.filter((origin) => !ORIGIN_PATTERN.test(origin));
+  if (invalid.length > 0) {
+    issues.push({
+      variable,
+      reason: `must be a comma-separated list of http(s) origins (got ${invalid
+        .map((origin) => `"${origin}"`)
+        .join(', ')})`,
+    });
+    return undefined;
+  }
+
+  return origins;
+}
+
 /**
  * Parse and validate an environment-shaped record.
  *
@@ -102,6 +152,7 @@ export function parseEnv(
     10,
     1,
   );
+  const corsOrigin = readOptionalOriginList(issues, source, 'CORS_ORIGIN');
 
   if (issues.length > 0) {
     throw new EnvValidationError(issues);
@@ -112,6 +163,7 @@ export function parseEnv(
     databaseUrl: databaseUrl as string,
     port,
     storageFeeBase,
+    corsOrigin,
   };
 }
 
