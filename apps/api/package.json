@@ -1,0 +1,28 @@
+{
+  "name": "@locker/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Locker system REST API — Fastify + Prisma/PostgreSQL, hexagonal layering (AD-1..AD-9).",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "db:migrate": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@locker/domain": "workspace:*",
+    "fastify": "5.12.4"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.4",
+    "dotenv": "17.4.2",
+    "prisma": "7.10.0",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
+  }
+}
