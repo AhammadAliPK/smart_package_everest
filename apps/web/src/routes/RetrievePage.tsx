@@ -80,7 +80,7 @@ export function RetrievePage() {
         : null;
 
   return (
-    <section className="mx-auto w-full max-w-[520px] px-[margin-mobile] py-section md:px-[margin-desktop]">
+    <section className="mx-auto w-full max-w-[520px] px-margin-mobile py-section md:px-margin-desktop">
       <Eyebrow>Customer pickup</Eyebrow>
       <h1
         ref={titleRef}
@@ -100,7 +100,7 @@ export function RetrievePage() {
         >
           <h2
             id="retrieval-confirmation"
-            className="font-display text-display-sm uppercase text-foreground"
+            className="break-words font-display text-display-sm uppercase text-foreground"
           >
             Locker {result.lockerId} is open.
           </h2>

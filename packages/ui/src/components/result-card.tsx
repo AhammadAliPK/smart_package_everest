@@ -36,7 +36,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
     <Button
       variant="secondary"
       aria-label={copied ? `${label} copied` : `Copy ${label}`}
-      className="min-h-11 px-3 py-1 text-xs"
+      className="min-h-11 shrink-0 px-3 py-1 text-xs"
       onClick={() => void copy()}
     >
       {copied ? 'Copied' : 'Copy'}
@@ -72,28 +72,31 @@ export function ResultCard({ lockerId, pickupCode, className }: ResultCardProps)
     >
       <Eyebrow>Package stored</Eyebrow>
 
-      <div className="mt-2 flex items-baseline justify-between gap-3 border-b border-border py-2.5">
+      {/* DESIGN.md: "locker ID + code stacked with generous spacing" — the
+          value owns the full card width (AD-9 ids are 25-char cuids, and a
+          side-by-side row pushes them past the border). */}
+      <div className="mt-2.5 border-b border-border pb-3">
         <span className="font-sans text-xs tracking-code uppercase text-muted-foreground">
           Locker
         </span>
-        <span className="flex items-center gap-2.5">
-          <span className="font-mono text-[20px] font-medium tracking-[0.12em] text-foreground">
+        <div className="mt-1 flex items-center gap-2.5">
+          <span className="min-w-0 flex-1 break-all font-mono text-[20px] font-medium tracking-[0.12em] text-foreground">
             {lockerId}
           </span>
           <CopyButton value={lockerId} label="locker ID" />
-        </span>
+        </div>
       </div>
 
-      <div className="flex items-baseline justify-between gap-3 py-2.5">
+      <div className="pt-3">
         <span className="font-sans text-xs tracking-code uppercase text-muted-foreground">
           Pickup code
         </span>
-        <span className="flex items-center gap-2.5">
-          <span className="font-mono text-code font-medium tracking-code text-foreground dark:text-butter">
+        <div className="mt-1 flex items-center gap-2.5">
+          <span className="min-w-0 flex-1 break-all font-mono text-code font-medium tracking-code text-foreground dark:text-butter">
             {pickupCode}
           </span>
           <CopyButton value={pickupCode} label="pickup code" />
-        </span>
+        </div>
       </div>
     </div>
   );

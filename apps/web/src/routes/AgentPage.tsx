@@ -45,7 +45,7 @@ export function AgentPage() {
   const firstFree = lockers?.findIndex((l) => !l.occupied) ?? -1;
 
   return (
-    <section className="mx-auto w-full max-w-275 px-[margin-mobile] py-section md:px-[margin-desktop]">
+    <section className="mx-auto w-full max-w-275 px-margin-mobile py-section md:px-margin-desktop">
       <Eyebrow>Delivery agent</Eyebrow>
       <h1
         ref={titleRef}

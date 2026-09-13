@@ -8,7 +8,9 @@ import { usePageTitleFocus } from './usePageFocus.js';
 /**
  * `/` — the chooser. The only branching surface in the app (EXPERIENCE.md):
  * two RoleCards, whole-card click targets, everything past this is a
- * dead-end workflow. Cards sit side by side from `lg` up.
+ * dead-end workflow. Two wide doors share the content column from `lg` up
+ * (DESIGN.md "large rounded-lg cards"; the negative space lives in the
+ * section margins, not in a half-empty row).
  */
 export function ChooserPage() {
   const titleRef = usePageTitleFocus<HTMLHeadingElement>();
@@ -21,7 +23,7 @@ export function ChooserPage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-[1100px] px-[margin-mobile] py-section md:px-[margin-desktop]">
+    <section className="mx-auto w-full max-w-[1100px] px-margin-mobile py-section md:px-margin-desktop">
       <Eyebrow>Everest Lockers</Eyebrow>
       <h1
         ref={titleRef}
@@ -39,7 +41,7 @@ export function ChooserPage() {
           eyebrow="Delivery agent"
           title="Store packages"
           description="See the station, drop packages in, get pickup codes."
-          className="w-full lg:w-[250px]"
+          className="w-full lg:flex-1"
         />
         <RoleCard
           href="/retrieve"
@@ -47,7 +49,7 @@ export function ChooserPage() {
           eyebrow="Customer"
           title="Pick up a package"
           description="Enter your locker ID and pickup code."
-          className="w-full lg:w-[250px]"
+          className="w-full lg:flex-1"
         />
       </div>
     </section>

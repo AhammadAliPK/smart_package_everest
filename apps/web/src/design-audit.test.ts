@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -119,6 +119,18 @@ describe('design-language invariants (DESIGN.md / EXPERIENCE.md)', () => {
     expect(readFileSync(join(ui, 'select.tsx'), 'utf8')).toContain('min-h-11');
     expect(readFileSync(join(ui, 'code-input.tsx'), 'utf8')).toContain('h-14');
   });
+
+  /**
+   * Tailwind scans @source paths silently — a wrong path yields a fully
+   * styled app minus every class unique to @locker/ui (buttons fell back to
+   * native chrome in the first manual smoke). The path is resolved like
+   * Tailwind resolves it: relative to the stylesheet.
+   */
+  it('@locker/ui source is actually scanned (the @source path exists)', () => {
+    const source = css.match(/@source\s+'([^']+)'/)?.[1];
+    expect(source, 'styles.css must declare an @source for the ui package').toBeDefined();
+    expect(existsSync(join(webRoot, 'src', source ?? ''))).toBe(true);
+  });
 });
 
 /** EXPERIENCE.md banned list, enforced mechanically on the shipped source. */
@@ -152,6 +164,22 @@ describe('banned patterns', () => {
       .map((path) => [path, stripComments(readFileSync(path, 'utf8'))] as const)
       .filter(([, source]) => BANNED.test(source))
       .map(([path]) => path);
+    expect(offenders).toEqual([]);
+  });
+
+  /**
+   * `px-[margin-mobile]` is not a token reference — brackets are a literal
+   * value, so it compiles to invalid CSS and the browser drops it (zero page
+   * padding, silently). Theme spacing tokens must be used as named utilities.
+   */
+  it('theme spacing tokens are named utilities, never bracketed literals', () => {
+    const scanned = [
+      ...collect(join(webRoot, 'src')),
+      ...collect(join(webRoot, '..', '..', 'packages', 'ui', 'src')),
+    ];
+    const offenders = scanned.filter((path) =>
+      /\[(margin-mobile|margin-desktop|section|gutter)]/.test(readFileSync(path, 'utf8')),
+    );
     expect(offenders).toEqual([]);
   });
 });

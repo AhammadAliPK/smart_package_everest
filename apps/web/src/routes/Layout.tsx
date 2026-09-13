@@ -24,7 +24,7 @@ export function Layout() {
       >
         Skip to content
       </a>
-      <header className="mx-auto flex w-full max-w-[1100px] items-center justify-between px-[margin-mobile] py-4 md:px-[margin-desktop]">
+      <header className="mx-auto flex w-full max-w-[1100px] items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
         <Wordmark />
         <ThemeToggle theme={theme} onToggle={() => setTheme(toggleTheme(theme))} />
       </header>

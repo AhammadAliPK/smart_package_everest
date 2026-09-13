@@ -13,8 +13,11 @@
 /* Class-based dark mode (html gets .dark; set pre-paint in index.html). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Scan @locker/ui's source for class names — it ships TSX, not CSS. */
-@source '../../packages/ui/src';
+/* Scan @locker/ui's source for class names — it ships TSX, not CSS.
+   Resolved relative to THIS file (apps/web/src): ui lives at the repo root.
+   A wrong path fails silently (classes unique to ui vanish from the build) —
+   pinned by design-audit.test.ts ("@locker/ui source is actually scanned"). */
+@source '../../../packages/ui/src';
 
 :root {
   /* Light theme — warm paper, never stark white. */
