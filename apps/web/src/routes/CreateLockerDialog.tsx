@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SyntheticEvent } from 'react';
 
 import {
   Button,
@@ -53,7 +53,7 @@ export function CreateLockerDialog({
     onOpenChange(next);
   };
 
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (size === null || pending) return;
     setPending(true);
