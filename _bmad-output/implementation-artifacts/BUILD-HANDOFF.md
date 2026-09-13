@@ -1,6 +1,6 @@
 # Build Handoff — read this first in any new session
 
-Single source of truth for where the Everest build stands. Updated 2026-09-13 ~19:50.
+Single source of truth for where the Everest build stands. Updated 2026-09-13 ~20:55.
 
 ## Process rules (user-set, non-negotiable)
 
@@ -11,9 +11,10 @@ Single source of truth for where the Everest build stands. Updated 2026-09-13 ~1
 
 ## Where we are
 
-- **Done:** Epic 1 COMPLETE and FULLY COMMITTED through `b9d0b59` (all 5 stories: scaffold, POST /lockers, GET /lockers frozen contract, POST /packages with SKIP LOCKED smallest-fit allocation + pickup codes, 409 refusal). Pipelines 14/14, 87 tests. Working tree clean except as noted below.
-- **Next up (spec written, awaiting approval):** `spec-2-1-3-2-retrieval-charges-concurrency.md` (status: planning) — Stories 2.1–2.3 + 3.1–3.2: `POST /pickups` atomic retrieval, four calm error outcomes, AD-5 tiered pricing with breakdown, parallel/oversubscription/mixed concurrency proof, ×3 stable runs. **First action in the new session: show the user a one-paragraph summary and get approval (AskUserQuestion), then implement DIRECTLY (route: direct — no subagent dispatch; user prefers orchestrator-implemented for speed).** Per-story test-first commits are Claude's job now (user delegated: "now you can do commit one by one").
-- **Then:** Epic 4 (UI — read the UX contract in `_bmad-output/planning-artifacts/ux-designs/ux-smart_package_everest-2026-09-13/DESIGN.md` + `EXPERIENCE.md`; consider splitting 4.1–4.3 / 4.4–4.7), then Epic 5 (Render deploy + README with AI-use disclosure — needs the user's Render account; see memory: create the free Postgres AT deploy time, 30-day clock).
+- **Done:** Epics 1–3 COMPLETE and FULLY COMMITTED through `4849d22`. Epic 1 (scaffold, POST /lockers, GET /lockers frozen contract, POST /packages SKIP LOCKED smallest-fit + pickup codes, 409 refusal). Epic 2+3 batch (`spec-2-1-3-2-retrieval-charges-concurrency.md`, status done): `POST /pickups` atomic retrieval (locked join resolve + CAS free + RETRIEVED, `retrievedAt` from the Postgres clock), four calm outcomes (400/404 unknown/404 wrong-code zero-write no-burn/409 empty), AD-5 tiered pricing with per-tier breakdown (`StoragePricingPolicy` in `@locker/domain`, `STORAGE_FEE_BASE` env), concurrency proofs (8→3 oversubscription, 6 mixed rounds with occupied==STORED invariants, double-pickup race, P2034 retry-2/exhaustion units). Pipelines 14/14 ×3 consecutive; 140 tests (domain 37, api 103). Per-story commits: `1d16f87` 2.1, `3573879` 2.2, `3d5bdea` 2.3, `c060fda` 3.1, `4849d22` 3.2, plus `c28b0a6` (untracked `.claude/settings.local.json`).
+- **Contract changes made during the batch (in-product, documented in the spec's Implementation Notes):** Ajv `removeAdditional: false` API-wide (closed schemas now actually reject unknown fields with 400); numeric scalars still coerce (`42` → `"42"`), documented precedent.
+- **Next up:** Epic 4 (UI — read the UX contract in `_bmad-output/planning-artifacts/ux-designs/ux-smart_package_everest-2026-09-13/DESIGN.md` + `EXPERIENCE.md`; consider splitting 4.1–4.3 / 4.4–4.7). Write the combined spec from `epics.md` story ACs + spine ADs, one AskUserQuestion approval, then DIRECT implementation (user prefers orchestrator-implemented; per-story test-first commits by Claude).
+- **Then:** Epic 5 (Render deploy + README with AI-use disclosure — needs the user's Render account; see memory: create the free Postgres AT deploy time, 30-day clock).
 - **Environment now:** `locker-postgres` container already running on host port 55432 (`.env` set); Node 22 + `npx pnpm@12.4.1`; nothing else running.
 
 ## Workflow skeleton (bmad-build, compressed)

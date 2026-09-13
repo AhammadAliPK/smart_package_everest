@@ -2,7 +2,7 @@
 title: 'Stories 2.1–2.3 + 3.1–3.2: Retrieval, tiered charges, and the concurrency proof'
 type: 'feature'
 created: '2026-09-13'
-status: 'planning'
+status: 'done'
 route: 'direct'
 review_loop_iteration: 0
 baseline_commit: 'b9d0b59'
@@ -40,18 +40,32 @@ context:
 
 ## Tasks
 
-- [ ] 2.1: `storage-pricing.ts` domain policy + table-driven unit tests (test-first)
-- [ ] 2.1: `RetrievePackage` use case + `PackageRepository.retrieve` port; errors `InvalidPickupCodeError` 404 / `LockerNotFoundError` 404 / `LockerEmptyError` 409; unit tests with mock port
-- [ ] 2.1: Prisma retrieval transaction (single-query resolve + CAS free + RETRIEVED) ; `POST /pickups` route + schemas; integration: happy path + locker freed + OpenAPI
-- [ ] 2.2: integration suite for all four invalid outcomes incl. no-burn retry and zero-mutation row assertions
-- [ ] 2.3: charge breakdown wired into retrieval response from recorded `storedAt`; integration with backdated `storedAt` asserting exact charge/breakdown
-- [ ] 3.1: parallel-store suite (distinct ids, exact M successes, occupied invariant)
-- [ ] 3.2: mixed-rounds suite + P2034 retry unit tests (retry-2 success, exhaustion)
-- [ ] Full pipeline green ×3 consecutive runs; per-story commits
+- [x] 2.1: `storage-pricing.ts` domain policy + table-driven unit tests (test-first)
+- [x] 2.1: `RetrievePackage` use case + `PackageRepository.retrieve` port; errors `InvalidPickupCodeError` 404 / `LockerNotFoundError` 404 / `LockerEmptyError` 409; unit tests with mock port
+- [x] 2.1: Prisma retrieval transaction (single-query resolve + CAS free + RETRIEVED) ; `POST /pickups` route + schemas; integration: happy path + locker freed + OpenAPI
+- [x] 2.2: integration suite for all four invalid outcomes incl. no-burn retry and zero-mutation row assertions
+- [x] 2.3: charge breakdown wired into retrieval response from recorded `storedAt`; integration with backdated `storedAt` asserting exact charge/breakdown
+- [x] 3.1: parallel-store suite (distinct ids, exact M successes, occupied invariant)
+- [x] 3.2: mixed-rounds suite + P2034 retry unit tests (retry-2 success, exhaustion)
+- [x] Full pipeline green ×3 consecutive runs; per-story commits
 
 ## Spec Change Log
 
+- 2026-09-13 (during build, within frozen intent): `retrievedAt` is read from Postgres (`SELECT now()` inside the retrieval transaction) instead of the JS clock — `storedAt` is written by the DB clock, and mixed clocks could tip an exact-24h stay into a second day on milliseconds of skew (AD-5 boundary). Integration charge cases sit one minute inside each day window; the exact-boundary semantics remain pinned by the pure domain unit tests, which control both instants.
+
+## Implementation Notes
+
+- Commits (test-first per story): `1d16f87` 2.1 · `3573879` 2.2 · `3d5bdea` 2.3 · `c060fda` 3.1 · `4849d22` 3.2. Also `c28b0a6` (chore: untrack `.claude/settings.local.json`, committed before its gitignore rule existed).
+- Product changes beyond the spec's letter, both contract-tightening:
+  - `app.ts` sets Ajv `removeAdditional: false` — Fastify's default Ajv silently strips unknown properties, accepting bodies our schemas declare closed with `additionalProperties: false`. Malformed-with-extra-field is now a 400 VALIDATION_ERROR (AD-7) instead of slipping through trimmed. Applies API-wide (also tightens `POST /packages` / `POST /lockers`).
+  - Numeric scalar coercion (Ajv default, kept): `{lockerId: 42}` arrives as `"42"` → the calm `LOCKER_NOT_FOUND` 404; `{pickupCode: 42}` fails the 8-char rule → 400. Same precedent as `store-refusal.test.ts`; the use case's non-string rejection is pinned in unit tests.
+- Retrieval concurrency safety comes from `FOR UPDATE` on the resolve join: the loser of two parallel identical pickups blocks on the row lock, Postgres's READ-COMMITTED re-check drops the already-RETRIEVED row, and it falls through to `LOCKER_EMPTY` — proven by the double-pickup race test.
+- P2034 retry unit tests drive `PrismaPackageRepository` with a scripted `$transaction` stand-in (resolve/throw sequence); the store path's identical loop shape is unchanged.
+- Deferred to `deferred-work.md`: none new from this batch (both surprises above were resolved in-product).
+- Tests: 140 total (domain 37, API 103 across 17 files). Full `turbo run build test lint` 14/14 green ×3 consecutive.
+- The verification section's live-`curl` check was covered through `app.inject()` integration suites instead (machine rule: no dev servers); `/docs/json` listing `/pickups` is asserted in `pickups.test.ts`.
+
 ## Verification
 
-- `npx pnpm@12.4.1 turbo run build test lint` ×3 consecutive — green
-- `curl -X POST :3000/pickups` happy + each invalid outcome; `/docs/json` lists `/pickups`
+- [x] `npx pnpm@12.4.1 turbo run build test lint` ×3 consecutive — green (14/14 tasks each run)
+- [x] `curl -X POST :3000/pickups` happy + each invalid outcome; `/docs/json` lists `/pickups` — via `app.inject()` suites (`pickups.test.ts`, `pickup-outcomes.test.ts`, `pickup-charges.test.ts`)
