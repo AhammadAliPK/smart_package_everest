@@ -3,6 +3,7 @@ import { useState } from 'react';
 import {
   BrandDash,
   Button,
+  EmptyState,
   ErrorBanner,
   Eyebrow,
   LockerTile,
@@ -11,6 +12,7 @@ import {
 
 import type { LockerSizeValue } from '../api/client.js';
 import { useLockers } from '../hooks/use-lockers.js';
+import { CreateLockerDialog } from './CreateLockerDialog.js';
 import { usePageTitleFocus } from './usePageFocus.js';
 
 /** Skeleton tiles match the final layout — never a spinner-only load. */
@@ -29,6 +31,7 @@ function formatTime(date: Date): string {
 export function AgentPage() {
   const titleRef = usePageTitleFocus<HTMLHeadingElement>();
   const { lockers, failed, stale, updatedAt, refresh } = useLockers();
+  const [createOpen, setCreateOpen] = useState(false);
 
   // Free-tile prefill target — consumed by the store form in Story 4.5.
   const [prefillSize, setPrefillSize] = useState<LockerSizeValue | null>(null);
@@ -67,6 +70,9 @@ export function AgentPage() {
           <Button variant="secondary" onClick={() => void refresh()}>
             Refresh
           </Button>
+          <Button variant="secondary" onClick={() => setCreateOpen(true)}>
+            Create locker
+          </Button>
         </div>
       </div>
 
@@ -92,10 +98,14 @@ export function AgentPage() {
       ) : null}
 
       {lockers && lockers.length === 0 ? (
-        // Story 4.4 replaces this with the EmptyState + "Create the first locker".
-        <p className="mt-6 font-sans text-base text-muted-foreground">
-          This station has no lockers yet.
-        </p>
+        <EmptyState
+          headline="This station has no lockers yet."
+          action={
+            <Button variant="primary" onClick={() => setCreateOpen(true)}>
+              Create the first locker
+            </Button>
+          }
+        />
       ) : null}
 
       {lockers && lockers.length > 0 ? (
@@ -115,6 +125,12 @@ export function AgentPage() {
           ))}
         </ul>
       ) : null}
+
+      <CreateLockerDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={refresh}
+      />
     </section>
   );
 }
