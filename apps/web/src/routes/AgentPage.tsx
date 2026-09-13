@@ -1,21 +1,120 @@
-import { BrandDash, Eyebrow } from '@locker/ui';
+import { useState } from 'react';
 
+import {
+  BrandDash,
+  Button,
+  ErrorBanner,
+  Eyebrow,
+  LockerTile,
+  Skeleton,
+} from '@locker/ui';
+
+import type { LockerSizeValue } from '../api/client.js';
+import { useLockers } from '../hooks/use-lockers.js';
 import { usePageTitleFocus } from './usePageFocus.js';
 
-/** `/agent` — placeholder until Story 4.3 hangs the station grid here. */
+/** Skeleton tiles match the final layout — never a spinner-only load. */
+const SKELETON_TILES = 8;
+
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+/**
+ * `/agent` — the station view (EXPERIENCE.md). Live availability is the hero:
+ * cream free tiles, sunken occupied ones, a count summary announced politely,
+ * and a 10s poll that pauses while the tab is hidden. Free-tile clicks
+ * prefill the store form's size (the form itself arrives with Story 4.5).
+ */
 export function AgentPage() {
   const titleRef = usePageTitleFocus<HTMLHeadingElement>();
+  const { lockers, failed, stale, updatedAt, refresh } = useLockers();
+
+  // Free-tile prefill target — consumed by the store form in Story 4.5.
+  const [prefillSize, setPrefillSize] = useState<LockerSizeValue | null>(null);
+  void prefillSize;
+
+  const freeCount = lockers ? lockers.filter((l) => !l.occupied).length : 0;
+  const firstFree = lockers?.findIndex((l) => !l.occupied) ?? -1;
 
   return (
     <section className="mx-auto w-full max-w-[1100px] px-[margin-mobile] py-section md:px-[margin-desktop]">
       <Eyebrow>Delivery agent</Eyebrow>
-      <h1 ref={titleRef} tabIndex={-1} className="page-title mt-2 font-display text-display uppercase text-foreground">
+      <h1
+        ref={titleRef}
+        tabIndex={-1}
+        className="page-title mt-2 font-display text-display uppercase text-foreground"
+      >
         Station view
       </h1>
       <BrandDash className="mt-4" />
-      <p className="mt-6 max-w-md font-sans text-base text-muted-foreground">
-        The live locker grid arrives with Story 4.3.
-      </p>
+
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+        <p
+          role="status"
+          aria-live="polite"
+          className="font-sans text-sm text-muted-foreground"
+        >
+          {lockers ? `${freeCount} free of ${lockers.length}` : 'Loading the station…'}
+        </p>
+        <div className="flex items-center gap-4">
+          {updatedAt ? (
+            <p className={`font-sans text-sm ${stale ? 'text-gold' : 'text-faint'}`}>
+              Last updated {formatTime(updatedAt)}
+              {stale ? ' — updating…' : ''}
+            </p>
+          ) : null}
+          <Button variant="secondary" onClick={() => void refresh()}>
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {failed && lockers === null ? (
+        <ErrorBanner className="mt-6">
+          Something went wrong on our side.
+        </ErrorBanner>
+      ) : null}
+
+      {lockers === null && !failed ? (
+        <ul
+          role="list"
+          aria-busy="true"
+          aria-label="Lockers loading"
+          className="mt-6 grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(130px,1fr))]"
+        >
+          {Array.from({ length: SKELETON_TILES }, (_, index) => (
+            <li key={index}>
+              <Skeleton className="min-h-26" />
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {lockers && lockers.length === 0 ? (
+        // Story 4.4 replaces this with the EmptyState + "Create the first locker".
+        <p className="mt-6 font-sans text-base text-muted-foreground">
+          This station has no lockers yet.
+        </p>
+      ) : null}
+
+      {lockers && lockers.length > 0 ? (
+        <ul
+          role="list"
+          aria-label="Lockers at this station"
+          className="mt-6 grid gap-3.5 grid-cols-[repeat(auto-fill,minmax(130px,1fr))]"
+        >
+          {lockers.map((locker, index) => (
+            <LockerTile
+              key={locker.id}
+              size={locker.size}
+              occupied={locker.occupied}
+              accent={index === firstFree}
+              onSelect={() => setPrefillSize(locker.size)}
+            />
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }
