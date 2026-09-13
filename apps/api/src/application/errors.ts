@@ -1,4 +1,4 @@
-import { LOCKER_SIZES } from '@locker/domain';
+import { LOCKER_SIZES, type LockerSize } from '@locker/domain';
 
 /**
  * Application-level error carrying its AD-7 code and HTTP status.
@@ -31,6 +31,24 @@ export class InvalidLockerSizeError extends AppError {
       `size must be one of ${LOCKER_SIZES.join(', ')}${
         typeof received === 'string' ? `, got "${received}"` : ''
       }`,
+    );
+  }
+}
+
+/** `customerRef` was supplied but is not a string (FR3, 400). */
+export class InvalidCustomerRefError extends AppError {
+  constructor() {
+    super('VALIDATION_ERROR', 400, 'customerRef must be a string when present');
+  }
+}
+
+/** Every locker that fits the package is occupied (FR6, AD-7: 409, no side effects). */
+export class NoSuitableLockerError extends AppError {
+  constructor(size: LockerSize) {
+    super(
+      'NO_SUITABLE_LOCKER',
+      409,
+      `No locker is available for a ${size} package right now`,
     );
   }
 }
