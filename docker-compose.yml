@@ -1,0 +1,59 @@
+# Local development / test runtime (spine: postgres:18-alpine + api).
+#
+#   docker compose up -d postgres   # Postgres 18 only, for Vitest / local dev
+#   docker compose up --build api   # full stack: migrations + API on :3000
+#
+# The host port for Postgres defaults to 5432 but can be overridden when the
+# machine already runs a Postgres there:  POSTGRES_PORT=55432 docker compose up -d
+#
+# Secrets live in .env (see .env.example); the defaults below are the local
+# development credentials and are intentionally not secrets.
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: locker-postgres
+    environment:
+      POSTGRES_USER: locker
+      POSTGRES_PASSWORD: locker
+      POSTGRES_DB: locker
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Postgres 18 images mount at /var/lib/postgresql (data in a subdirectory,
+      # so pg_upgrade works across mount-point boundaries).
+      - locker-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U locker -d locker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: locker-api
+    environment:
+      DATABASE_URL: postgres://locker:locker@postgres:5432/locker
+      PORT: "3000"
+      STORAGE_FEE_BASE: "10"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  locker-pgdata:
