@@ -11,3 +11,5 @@
 
 /** Package identity marker; exists only so this workspace compiles and ships a real entry point. */
 export const DOMAIN_PACKAGE_NAME = '@locker/domain' as const;
+
+export { LOCKER_SIZES, isLockerSize, type LockerSize } from './locker-size.js';
