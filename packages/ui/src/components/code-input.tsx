@@ -28,6 +28,8 @@ export interface CodeInputProps {
   disabled?: boolean;
   /** Flag every cell as failing (linked inline error is the caller's). */
   invalid?: boolean;
+  /** id of the inline error element — linked to every cell (a11y floor). */
+  describedBy?: string;
   className?: string;
 }
 
@@ -36,6 +38,7 @@ export function CodeInput({
   onChange,
   disabled = false,
   invalid = false,
+  describedBy,
   className,
 }: CodeInputProps) {
   const cells = React.useRef<Array<HTMLInputElement | null>>([]);
@@ -144,6 +147,7 @@ export function CodeInput({
               disabled={disabled}
               aria-label={`code character ${index + 1}`}
               aria-invalid={invalid || undefined}
+              aria-describedby={describedBy}
               onFocus={(event) => event.currentTarget.select()}
               onChange={(event) => handleInput(index, event)}
               onKeyDown={(event) => handleKeyDown(index, event)}

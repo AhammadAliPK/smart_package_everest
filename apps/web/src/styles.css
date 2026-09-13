@@ -29,6 +29,12 @@
   /* Gold is a dark-theme keyword tint; light keeps a readable equivalent. */
   --gold: #7a6a45;
 
+  /* Focus ring (UX-DR18): the deck orange is ~1.9:1 on warm paper — focus
+     indicators need 3:1 against adjacent colors (WCAG 2.4.11), so light gets
+     a deep amber from the same family. Dark keeps the bright brand orange
+     (~9:1 on near-black). Verified in design-audit.test.ts. */
+  --ring: #9c6400;
+
   /* Light cards may carry a barely-there warm shadow on hover (DESIGN.md). */
   --hover-shadow: 0 1px 3px rgb(26 25 21 / 0.07);
 }
@@ -42,6 +48,8 @@
   --muted: #a9a9a1;
   --faint: #8b8b84;
   --gold: #e0c9a6;
+  /* The bright brand orange clears 3:1 comfortably on near-black. */
+  --ring: #f5a100;
 
   /* Dark theme is matte: depth is tonal, never shadowed (DESIGN.md). */
   --hover-shadow: none;
@@ -55,7 +63,6 @@
   --cream: #e8d9a8; /* a FREE locker looks like this */
   --cream-edge: #c9b57e;
   --glow: #ffd84d; /* sparingly: live/active sliver, ≤1 per surface */
-  --ring: #f5a100; /* focus ring is brand orange, AA-visible on both themes */
 }
 
 @theme inline {

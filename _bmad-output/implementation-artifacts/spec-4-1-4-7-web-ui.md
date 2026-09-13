@@ -2,7 +2,7 @@
 title: 'Stories 4.1–4.7: The web UI — chooser, agent console, customer retrieval on @locker/ui'
 type: 'feature'
 created: '2026-09-13'
-status: 'approved'
+status: 'done'
 route: 'direct'
 review_loop_iteration: 0
 baseline_commit: 'c1fd5a9'
@@ -49,20 +49,32 @@ context:
 
 ## Tasks
 
-- [ ] 4.1: scaffold `apps/web` (Vite + React 19 + Tailwind 4 + react-router, jsdom test rig) and grow `@locker/ui` (source-exported, tsc --noEmit build); tokens/theme CSS (dark+light, pre-paint inline script, toggle in header, persisted); BrandBadge + BrandDash + Button(primary) + base primitives (Input, Select, Dialog, Skeleton, Separator, ErrorBanner); OpenAPI export script + typegen + thin fetch client; route shell with title focus; boundary-lint zones (ui bans web/server imports; web bans @locker/domain); component tests: theme persistence, motifs render, routes focus titles
-- [ ] 4.2: ChooserLanding + RoleCard (whole-card click, hover/focus border → brand); tests: navigation from both cards, whole-card target
-- [ ] 4.3: useLockers polling hook (10s, pause-on-hidden, silent-fail + stale label, manual refresh) + LockerGrid + LockerCard + skeleton + live-region count; tests with mocked client + fake timers
-- [ ] 4.4: EmptyState + CreateLockerControl dialog (Esc, error-preserve, refresh-on-success); tests for open→create→refresh, Esc, error path
-- [ ] 4.5: StorePackageForm (Enter submit, pending lock, free-tile prefill) + ResultCard (focus, announce, one-tap copy, persists) + calm NO_SUITABLE_LOCKER banner; tests for the full rhythm incl. repeat-store and error-preserve
-- [ ] 4.6: RetrievePackageForm + CodeInput (8 cells, all mechanics) + confirmation + ChargeSummary verbatim + error-preserve for all five codes; tests for CodeInput mechanics, error matrix, ledger-from-response
-- [ ] 4.7: hardening — state-matrix audit test (every AD-7 code → exact EXPERIENCE.md copy incl. poll-failure + empty station), contrast-ratio test computed from shipped token hexes, focus/aria/live/44px assertions, responsive + reduced-motion CSS, banned-list pass
-- [ ] Full pipeline green ×3 consecutive; manual smoke instructions handed to the user (postgres + api + web); per-story commits
+- [x] 4.1: scaffold `apps/web` (Vite + React 19 + Tailwind 4 + react-router, jsdom test rig) and grow `@locker/ui` (source-exported, tsc --noEmit build); tokens/theme CSS (dark+light, pre-paint inline script, toggle in header, persisted); BrandBadge + BrandDash + Button(primary) + base primitives (Input, Select, Dialog, Skeleton, Separator, ErrorBanner); OpenAPI export script + typegen + thin fetch client; route shell with title focus; boundary-lint zones (ui bans web/server imports; web bans @locker/domain); component tests: theme persistence, motifs render, routes focus titles
+- [x] 4.2: ChooserLanding + RoleCard (whole-card click, hover/focus border → brand); tests: navigation from both cards, whole-card target
+- [x] 4.3: useLockers polling hook (10s, pause-on-hidden, silent-fail + stale label, manual refresh) + LockerGrid + LockerCard + skeleton + live-region count; tests with mocked client + fake timers
+- [x] 4.4: EmptyState + CreateLockerControl dialog (Esc, error-preserve, refresh-on-success); tests for open→create→refresh, Esc, error path
+- [x] 4.5: StorePackageForm (Enter submit, pending lock, free-tile prefill) + ResultCard (focus, announce, one-tap copy, persists) + calm NO_SUITABLE_LOCKER banner; tests for the full rhythm incl. repeat-store and error-preserve
+- [x] 4.6: RetrievePackageForm + CodeInput (8 cells, all mechanics) + confirmation + ChargeSummary verbatim + error-preserve for all five codes; tests for CodeInput mechanics, error matrix, ledger-from-response
+- [x] 4.7: hardening — state-matrix audit test (every AD-7 code → exact EXPERIENCE.md copy incl. poll-failure + empty station), contrast-ratio test computed from shipped token hexes, focus/aria/live/44px assertions, responsive + reduced-motion CSS, banned-list pass
+- [x] Full pipeline green ×3 consecutive; manual smoke instructions handed to the user (postgres + api + web); per-story commits
 
 ## Spec Change Log
 
+## Implementation Notes
+
+- Commits (test-first per story): `36bdb3c` 4.1 · `7c82abd` 4.2 · `a98cb70` 4.3 · `d8d00fc` 4.4 · `456d9d0` 4.5 · `6a7e950` 4.6 · story 4.7 is the commit immediately preceding this docs commit. (Process change mid-batch: from 4.4 on the user committed each story themselves from a handed plan.)
+- **TypeScript 7 vs openapi-typescript (resolved in-product):** TS 7.0.2 is the native port and ships no JS compiler API; `openapi-typescript` 7.13.0 (peer `^5.x`) needs `ts.factory` and crashed. pnpm 12 ignores the `pnpm.overrides` field in package.json, and a workspace override can't beat a workspace's own devDep for peer resolution — so `apps/web` alone pins `typescript: 5.9.3` (devDep of the typegen step only). domain/api/ui stay on 7.0.2. Recorded trade-off, not silently absorbed.
+- **Light-theme focus ring (WCAG 2.4.11):** the deck's brand `#F5A100` ring measures ~1.9:1 against light paper — under the 3:1 focus-indicator floor. Light theme now uses `--ring: #9C6400` (darkened brand hue); dark keeps `#F5A100`. Both are enforced by `design-audit.test.ts`, which computes contrast from the tokens actually in `styles.css` (a token edit that breaks the floor fails CI).
+- **Banned-char duplication (deliberate):** `CodeInput` re-declares the 0/O/1/I display rule because `apps/web` may not import `@locker/domain` (AD-2) and the codepage is domain knowledge; the API stays the single source of truth for rejection.
+- **React 19.3:** `FormEvent`/`FormEventHandler` are deprecated ("doesn't actually exist") — handlers use `SyntheticEvent<HTMLFormElement>`. `router.navigate` resolves before the render flush, so nav assertions use `findBy*`.
+- **Test-rig quirks pinned for the next session:** Radix under jsdom needs `scrollIntoView`/`hasPointerCapture`/`releasePointerCapture` no-ops (test setup); `userEvent.setup()` replaces `navigator.clipboard` with its own stub, so the test stub is installed after setup via `Object.defineProperty`; `user.paste` has no ClipboardEvent plumbing → `fireEvent.paste(el, {clipboardData: {getData}})`; `import.meta.url` isn't file-scheme under jsdom → file reads use `process.cwd()`.
+- ESLint parses the React JSX with babel plugins (`@babel/plugin-syntax-typescript` `isTSX` + `@babel/plugin-syntax-jsx` 8.0.1) — the typescript-eslint parser used elsewhere doesn't handle TSX config in this setup.
+- Tests: 218 total (domain 37, api 103, web 78 across 11 files). Full `turbo run build test lint` ×3 consecutive green (11 build, 5 test, 5 lint tasks).
+- Deferred to `deferred-work.md`: nothing new from this batch.
+
 ## Verification
 
-- `npx pnpm@12.4.1 turbo run build test lint` ×3 consecutive — green (now including `apps/web` + real `packages/ui`)
-- Manual smoke (user-run): `locker-postgres` compose DB up → `npx pnpm@12.4.1 --filter @locker/api dev` and `npx pnpm@12.4.1 --filter @locker/web dev`; exercise chooser → create lockers → grid → store → ResultCard → retrieve → ChargeSummary → each calm error, dark/light toggle, phone-width `/retrieve`
-- `apps/web` type-checks against generated `schema.d.ts` only — zero hand-copied response types (AD-10)
+- [x] `npx pnpm@12.4.1 turbo run build test lint` ×3 consecutive — green (now including `apps/web` + real `packages/ui`)
+- [ ] Manual smoke (user-run): `locker-postgres` compose DB up → `npx pnpm@12.4.1 --filter @locker/api dev` and `npx pnpm@12.4.1 --filter @locker/web dev`; exercise chooser → create lockers → grid → store → ResultCard → retrieve → ChargeSummary → each calm error, dark/light toggle, phone-width `/retrieve` — instructions handed to the user at batch close; tick after their pass
+- [x] `apps/web` type-checks against generated `schema.d.ts` only — zero hand-copied response types (AD-10)
 </frozen-after-approval>

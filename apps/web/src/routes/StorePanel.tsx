@@ -134,6 +134,8 @@ export function StorePanel({ prefill, onStored }: StorePanelProps) {
             <p
               id="store-package-ref-error"
               className="mt-1.5 font-sans text-sm text-foreground"
+              role="status"
+              aria-live="polite"
             >
               Check this field and try again.
             </p>

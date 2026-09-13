@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-13-2026 15:55
-last_updated: 09-13-2026 20:50
+last_updated: 09-13-2026 21:49
 project: smart_package_everest
 project_key: NOKEY
 tracking_system: file-system
@@ -54,14 +54,14 @@ development_status:
   3-2-availability-stays-correct-under-sustained-mixed-concurrency: done
   epic-3-retrospective: optional
 
-  epic-4: in-progress
-  4-1-ui-foundation-locker-ui-tokens-theme-system-and-app-shell: in-progress
-  4-2-chooser-landing-the-two-role-doors: in-progress
-  4-3-agent-console-station-grid-with-live-availability: in-progress
-  4-4-create-locker-control-and-the-empty-station-state: in-progress
-  4-5-store-package-flow-with-the-resultcard-climax: in-progress
-  4-6-customer-retrieval-code-input-charge-ledger-calm-errors: in-progress
-  4-7-hardening-pass-full-state-matrix-accessibility-responsivenes: in-progress
+  epic-4: done
+  4-1-ui-foundation-locker-ui-tokens-theme-system-and-app-shell: done
+  4-2-chooser-landing-the-two-role-doors: done
+  4-3-agent-console-station-grid-with-live-availability: done
+  4-4-create-locker-control-and-the-empty-station-state: done
+  4-5-store-package-flow-with-the-resultcard-climax: done
+  4-6-customer-retrieval-code-input-charge-ledger-calm-errors: done
+  4-7-hardening-pass-full-state-matrix-accessibility-responsivenes: done
   epic-4-retrospective: optional
 
   epic-5: backlog

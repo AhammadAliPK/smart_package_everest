@@ -139,7 +139,12 @@ export function RetrievePage() {
             onChange={(event) => setLockerId(event.target.value)}
           />
           {lockerError ? (
-            <p id="retrieve-locker-id-error" className="mt-1.5 font-sans text-sm text-foreground">
+            <p
+              id="retrieve-locker-id-error"
+              className="mt-1.5 font-sans text-sm text-foreground"
+              role="status"
+              aria-live="polite"
+            >
               {lockerError}
             </p>
           ) : null}
@@ -153,12 +158,14 @@ export function RetrievePage() {
             onChange={setCode}
             disabled={pending}
             invalid={codeError !== null}
+            describedBy={codeError ? 'retrieve-code-error' : undefined}
           />
           {codeError ? (
             <p
               id="retrieve-code-error"
               className="font-sans text-sm text-foreground"
-              role="alert"
+              role="status"
+              aria-live="polite"
             >
               {codeError}
             </p>
