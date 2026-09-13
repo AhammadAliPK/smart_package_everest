@@ -20,11 +20,26 @@ import { StorePackage } from '../src/application/use-cases/store-package.js';
  */
 class InMemoryLockerRepository implements LockerRepository {
   readonly lockers: Locker[] = [];
-  private nextId = 0;
+  private nextSeed = 0;
 
-  async create(size: Locker['size']): Promise<Locker> {
+  /** Seeding draws sequential alphabet-valid ids (the generator path is
+   *  exercised in the create-locker suite — this one never passes one). */
+  private seedId(): string {
+    let n = this.nextSeed++;
+    let id = '';
+    for (let index = 0; index < 6; index += 1) {
+      id = PICKUP_CODE_ALPHABET[n % PICKUP_CODE_ALPHABET.length]! + id;
+      n = Math.floor(n / PICKUP_CODE_ALPHABET.length);
+    }
+    return id;
+  }
+
+  async create(
+    size: Locker['size'],
+    nextLockerId?: () => string,
+  ): Promise<Locker> {
     const locker: Locker = {
-      lockerId: `c${(this.nextId++).toString(36).padStart(24, '0')}`,
+      lockerId: nextLockerId?.() ?? this.seedId(),
       size,
       occupied: false,
     };

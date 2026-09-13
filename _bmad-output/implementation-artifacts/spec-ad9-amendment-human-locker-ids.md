@@ -2,7 +2,7 @@
 title: 'AD-9 amendment: human locker ids'
 type: 'change'
 created: '2026-09-13'
-status: 'awaiting-approval'
+status: 'done'
 route: 'dispatch'
 review_loop_iteration: 0
 baseline_commit: '4c55506'
@@ -41,6 +41,8 @@ context:
 
 </frozen-after-approval>
 
+> **Amendment (user, 2026-09-13, mid-build — renegotiated frozen intent):** the drafted design added a second column `locker.code` alongside the cuid. The user redirected: *"we need locker id in table not locker code — the locker table already has a col called id."* Final design is simpler and stronger: **the generated 6-char id IS `locker.id`, the primary key. The cuid is gone entirely** — no surrogate key, no mapping layer, no second column, and `package-repository`'s SQL (already joining on `l.id`) needed zero changes. Everything else in this spec (alphabet, normalization, tolerances, patterns, migration-with-backfill, bounded retry) shipped as written. The Code Map rows below describe the drafted column design and are superseded by this note; the shipped shape is visible in `apps/api/prisma/schema.prisma` and `migration 20260913231500_human_locker_ids`.
+
 ## Code Map
 
 - `packages/domain/src/locker-code.ts` (new) — `LOCKER_CODE_LENGTH`, `generateLockerCode(random: RandomSource)`; imports the frozen alphabet; exported via `index.ts`.
@@ -58,21 +60,26 @@ context:
 
 **Execution:**
 
-- [ ] 1. Domain: `locker-code.ts` + unit tests (length, alphabet membership, determinism under injected source, exclusion of `0/O/1/I`); export from `index.ts`.
-- [ ] 2. Prisma: schema field + `prisma migrate dev --name human_locker_codes` (backfill SQL + unique index); reset the dev database.
-- [ ] 3. Adapter: `PrismaLockerRepository` — code into `lockerId`, bounded collision retry; port signature update.
-- [ ] 4. Package repository: `storeWithin`/`retrieveWithin` by code; integration tests updated (store → reply code; retrieve lowercase + padded → success).
-- [ ] 5. Use cases + composition root: generator wiring, retrieval normalization, ordering comment.
-- [ ] 6. HTTP schemas: response patterns, loosened pickup request; `/docs` renders the new shapes.
-- [ ] 7. Contract regen for web (`schema.d.ts`), web changes + tests.
-- [ ] 8. Docs sync: AD-9 v1.1 in ARCHITECTURE-SPINE.md, BUILD-HANDOFF deviation note, deferred-work.md "short display id" entry superseded.
-- [ ] 9. Full pipeline (`turbo run build test lint`) green ×3 consecutive; test-count delta recorded here.
+- [x] 1. Domain: `locker-id.ts` (`LOCKER_ID_LENGTH = 6`, `generateLockerId`) + 4 unit tests; exported from `index.ts`.
+- [x] 2. Prisma: `id String @id` (application-supplied, no cuid default) + hand-written migration `20260913231500_human_locker_ids` (PK swap + md5 backfill; applied to dev via `migrate deploy` — `migrate dev` refuses non-interactive). Dev DB kept its 1 locker (`DAE378`), no reset needed.
+- [x] 3. Adapter: `PrismaLockerRepository.create(size, nextLockerId)` — bounded P2002 retry; `row.id` → `lockerId`.
+- [x] 4. Package repository: **unchanged** (amendment — it already joins on `l.id`); only the CandidateRow comment notes the id is public now.
+- [x] 5. Use cases: `CreateLocker` gains injected `RandomSource` (default `cryptoRandomInt`, the StorePackage idiom — no composition-root change needed); `RetrievePackage` trims + uppercases.
+- [x] 6. HTTP schemas: `lockerIdPattern` derived from domain constants on all four response fields; pickup request loosened to `minLength 1, maxLength 32` with case-insensitivity note.
+- [x] 7. Contract regen (`export-openapi` → `openapi-typescript`); `/retrieve` input auto-uppercases, `placeholder="e.g. K7Q4M2"`, `maxLength 32`, `autoCapitalize="characters"`, `spellCheck={false}`.
+- [x] 8. Docs sync: AD-9 v1.1 in ARCHITECTURE-SPINE.md; BUILD-HANDOFF updated; deferred-work.md had no display-id entry to supersede (the deferral lived in the AD itself).
+- [x] 9. Full pipeline ×3 green; test delta below.
 
 **Verification:**
 
-- [ ] `npx pnpm@12.4.1 turbo run build test lint` ×3 green.
-- [ ] User manual smoke: create → grid shows codes implicitly; store → ResultCard shows `K7Q4M2`-style id; `/retrieve` with lowercase+spaces → opens; wrong code paths calm.
+- [x] `npx pnpm@12.4.1 turbo run build test lint` ×3 green.
+- [ ] User manual smoke (restart BOTH dev servers first — domain dist + Prisma client regenerated): create → store → ResultCard shows `K7Q4M2`-style id → `/retrieve` with lowercase+spaces → opens; wrong-code paths calm.
 
 ## Implementation Notes
 
-*(filled at close)*
+- **Tests 220 → 227:** domain 37 → 41 (`locker-id.test.ts`: length, alphabet, index-by-index, distinctness), api 103 → 105 (create returns id-shape + injected-source draw; retrieve normalization `'
+  k7q4m2 '` → `K7Q4M2`; whitespace-only lockerId joins the validation matrix), web 80 → 81 (typed id uppercases + maxLength/placeholder pinned).
+- **A stale-`dist` trap surfaced:** the API imports `@locker/domain`'s built output, so the export rename 500'd every create until `--filter @locker/domain build` ran — `pnpm recursive` does not rebuild dependencies (turbo does; the ×3 pipeline covers it).
+- **Migration mechanics (Prisma 7, non-interactive):** `migrate dev` refuses without a TTY — the house path is hand-written SQL + `migrate deploy`, matching the schema.prisma header. An earlier drafted column migration (`human_locker_codes`) was applied then fully reverted (column dropped, ledger row deleted) when the user renegotiated to the PK design; `migrate resolve --rolled-back` only accepts FAILED migrations, hence the manual ledger `DELETE`.
+- **Security note:** locker ids are addresses, not secrets — the 8-char pickup code (AD-6) remains the gate. 6 chars over 31 symbols ≈ 887M ids; sequential enumeration is impossible without a counter.
+- **Naming:** vocabulary stays "locker id" everywhere customer-visible (UI label, `lockerId` field, `locker.id` column); the only "code" in the product is the pickup code, per the user's explicit direction.

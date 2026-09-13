@@ -33,7 +33,12 @@ enum LockerSize {
 }
 
 model Locker {
-  id String @id @default(cuid())
+  // The locker's ONLY identifier (AD-9 v1.1): a generated 6-char value over
+  // the unambiguous pickup-code alphabet — what customers type on /retrieve
+  // and what `lockerId` means in every payload. It IS the primary key (one
+  // locker, one id, no surrogate key); the application supplies it at
+  // create time and the adapter retries the (~1/887M) collision.
+  id String @id
 
   size LockerSize
 

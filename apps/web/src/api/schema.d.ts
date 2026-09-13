@@ -66,6 +66,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             lockers: {
+                                /** @description The locker id — 6 unambiguous characters, e.g. "K7Q4M2". */
                                 id: string;
                                 size: "SMALL" | "MEDIUM" | "LARGE";
                                 occupied: boolean;
@@ -98,6 +99,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            /** @description The locker id — 6 unambiguous characters, e.g. "K7Q4M2". */
                             lockerId: string;
                             size: "SMALL" | "MEDIUM" | "LARGE";
                             occupied: boolean;
@@ -144,6 +146,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            /** @description The assigned locker id — 6 unambiguous characters. */
                             lockerId: string;
                             pickupCode: string;
                         };
@@ -176,6 +179,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        /** @description The locker id; case-insensitive and trimmed by the server (e.g. "k7q4m2"). */
                         lockerId: string;
                         pickupCode: string;
                     };
@@ -189,6 +193,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            /** @description The locker the package was retrieved from. */
                             lockerId: string;
                             /** Format: date-time */
                             retrievedAt: string;

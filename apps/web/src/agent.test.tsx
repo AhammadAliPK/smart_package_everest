@@ -51,7 +51,11 @@ describe('agent console', () => {
 
     const occupied = screen.getByText('MEDIUM · OCCUPIED');
     expect(occupied.closest('button')).toBeNull();
-    expect(screen.getByText('—')).toBeInTheDocument();
+    // Every door has its number on it (DESIGN.md: id in typography.code) —
+    // the occupied one quietly muted, the free ones on the cream door.
+    expect(screen.getByText('A1')).toBeInTheDocument();
+    expect(screen.getByText('A2')).toBeInTheDocument();
+    expect(screen.getByText('A3')).toBeInTheDocument();
   });
 
   it('announces the free count through a polite live region', async () => {

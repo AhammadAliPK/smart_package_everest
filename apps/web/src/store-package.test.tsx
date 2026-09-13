@@ -51,6 +51,11 @@ describe('store package', () => {
     expect(
       screen.getByRole('combobox', { name: /package size/i }),
     ).toHaveTextContent('SMALL');
+
+    // The tapped locker's id rides along — visible but never editable.
+    const lockerField = screen.getByLabelText(/^locker \(from your tile tap\)/i);
+    expect(lockerField).toHaveValue('A1');
+    expect(lockerField).toHaveAttribute('readonly');
   });
 
   it('stores, shows the focused ResultCard, clears the form and refreshes the grid', async () => {
@@ -83,6 +88,7 @@ describe('store package', () => {
       screen.getByRole('combobox', { name: /package size/i }),
     ).toHaveTextContent('Choose a size');
     expect(screen.getByLabelText(/customer reference/i)).toHaveValue('');
+    expect(screen.getByLabelText(/^locker \(from your tile tap\)/i)).toHaveValue('');
     expect(listLockers).toHaveBeenCalledTimes(2);
   });
 
@@ -104,6 +110,7 @@ describe('store package', () => {
     expect(
       screen.getByRole('combobox', { name: /package size/i }),
     ).toHaveTextContent('SMALL');
+    expect(screen.getByLabelText(/^locker \(from your tile tap\)/i)).toHaveValue('A1');
   });
 
   it('VALIDATION_ERROR flags the reference field inline, not with a banner', async () => {

@@ -134,9 +134,18 @@ export function RetrievePage() {
             value={lockerId}
             disabled={pending}
             autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            placeholder="e.g. K7Q4M2"
+            maxLength={32}
             aria-invalid={lockerError !== null || undefined}
             aria-describedby={lockerError ? 'retrieve-locker-id-error' : undefined}
-            onChange={(event) => setLockerId(event.target.value)}
+            onChange={(event) =>
+              // Meet the customer halfway: ids arrive uppercased no matter
+              // how they're typed (the API trims + uppercases too, so a
+              // pasted lowercase id still works everywhere).
+              setLockerId(event.target.value.toUpperCase())
+            }
           />
           {lockerError ? (
             <p

@@ -23,7 +23,7 @@ function writeConflict(): Prisma.PrismaClientKnownRequestError {
 }
 
 const DONE: PackageRetrieval = {
-  lockerId: 'clocker0000000000000000',
+  lockerId: 'K7Q4M2',
   storedAt: new Date('2026-09-13T09:00:00.000Z'),
   retrievedAt: new Date('2026-09-13T09:05:00.000Z'),
 };

@@ -1,12 +1,13 @@
 import { Type, type Static } from '@sinclair/typebox';
 
-import { lockerSizeSchema } from './locker-schema.js';
+import { lockerIdPattern, lockerSizeSchema } from './locker-schema.js';
 
 /**
  * Contract-first schemas for `POST /packages` (AD-1).
  *
- * The reply is the frozen store contract: the assigned locker's cuid (named
- * `lockerId` here, per AD-9) and the 8-character pickup code — nothing else.
+ * The reply is the frozen store contract: the assigned locker's id (named
+ * `lockerId` here, per AD-9 v1.1) and the 8-character pickup code — nothing
+ * else.
  */
 export const createPackageRequestSchema = Type.Object(
   {
@@ -18,7 +19,10 @@ export const createPackageRequestSchema = Type.Object(
 
 export const createPackageReplySchema = Type.Object(
   {
-    lockerId: Type.String(),
+    lockerId: Type.String({
+      pattern: lockerIdPattern,
+      description: 'The assigned locker id — 6 unambiguous characters.',
+    }),
     pickupCode: Type.String(),
   },
   { additionalProperties: false },

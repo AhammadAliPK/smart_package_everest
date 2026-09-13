@@ -88,10 +88,11 @@ Dependency direction is strictly inward: `adapters → application → domain`. 
 - **Prevents:** hidden in-process state that breaks multi-instance correctness (Level 4) and undocumented schema drift
 - **Rule:** All durable state lives in Postgres (Prisma). No module-level mutable stores. One package per locker is enforced in the schema (partial unique index on the occupied-by column), not just in code. Schema changes ship as migration files committed with the story that needs them; production applies them via `prisma migrate deploy` in the container entrypoint (the deploy platform — Render — provisions the Postgres and injects `DATABASE_URL`; the app never boots against an unmigrated schema). **[ADOPTED]** (Postgres: user decision)
 
-### AD-9 — One locker identifier: the cuid `lockerId`
+### AD-9 — One locker identifier: the generated `lockerId` **(v1.1, amended 2026-09-13)**
 - **Binds:** LVL-1-storage, LVL-2-retrieval
-- **Prevents:** Epic A exposing a human display code ("A12") while Epic B validates retrieval against the cuid — customers holding one can never use the other
-- **Rule:** A locker has exactly one identifier: its cuid. Every payload — `POST /lockers` response, `GET /lockers` items, `POST /packages` response, `POST /pickups` request — carries it as the field named `lockerId`. No secondary display code exists in v1.
+- **Prevents:** two identifiers drifting apart (a human display code one epic shows while another validates a different key), and machine-only ids a customer cannot type
+- **Rule:** A locker has exactly one identifier: a generated 6-character value over the unambiguous pickup-code alphabet (AD-6's alphabet — `0/O/1/I` excluded; 31⁶ ≈ 887M, so no counter is needed). It IS the `locker.id` primary key — no surrogate key, no secondary display code. Every payload — `POST /lockers` response, `GET /lockers` items, `POST /packages` response, `POST /pickups` request — carries it as `lockerId` (the list item carries it as `id`, per AD-1's frozen shape). Retrieval trims + uppercases the typed id; creation retries the (~1/887M) collision, bounded.
+- **v1 → v1.1:** v1 froze Prisma's cuid as the identifier. Epic 4 manual smoke showed the cost — a customer typing `cmtzxfdqa0000kux659d1skyf` one-handed on `/retrieve`. The amendment keeps "exactly one identifier" and changes only the value space; the cuid is gone entirely (amended pre-deploy, so no production row ever held one). Spec: `spec-ad9-amendment-human-locker-ids.md`.
 
 ### AD-10 — Frontend is a view over the API; the component library is presentation-only
 - **Binds:** web UI, component library

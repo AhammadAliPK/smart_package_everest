@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { LOCKER_ID_LENGTH, PICKUP_CODE_ALPHABET } from '@locker/domain';
+
 import { buildApp } from '../src/adapters/http/app.js';
 import type { Env } from '../src/config/env.js';
 import {
@@ -15,8 +17,10 @@ import {
  * Isolation is truncate-after-suite (see test-db.ts).
  */
 
-/** Prisma's cuid: `c` + ~24 lowercase base32-ish chars (AD-9 identifier). */
-const CUID_PATTERN = /^c[a-z0-9]{20,32}$/;
+/** The AD-9 v1.1 identifier: 6 chars over the unambiguous alphabet. */
+const LOCKER_ID_PATTERN = new RegExp(
+  `^[${PICKUP_CODE_ALPHABET}]{${LOCKER_ID_LENGTH}}$`,
+);
 
 describe('POST /lockers (integration)', () => {
   let app: Awaited<ReturnType<typeof buildApp>> | undefined;
@@ -58,7 +62,7 @@ describe('POST /lockers (integration)', () => {
       'size',
     ]);
     expect(body).toEqual({
-      lockerId: expect.stringMatching(CUID_PATTERN) as unknown as string,
+      lockerId: expect.stringMatching(LOCKER_ID_PATTERN) as unknown as string,
       size: 'MEDIUM',
       occupied: false,
     });

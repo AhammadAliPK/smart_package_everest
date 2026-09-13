@@ -10,8 +10,11 @@ import { ListLockers } from '../src/application/use-cases/list-lockers.js';
 class InMemoryLockerRepository implements LockerRepository {
   constructor(private readonly seed: Locker[]) {}
 
-  async create(size: Locker['size']): Promise<Locker> {
-    const locker: Locker = { lockerId: 'cnew', size, occupied: false };
+  async create(
+    size: Locker['size'],
+    nextLockerId: () => string,
+  ): Promise<Locker> {
+    const locker: Locker = { lockerId: nextLockerId(), size, occupied: false };
     this.seed.push(locker);
     return locker;
   }
@@ -28,19 +31,23 @@ function locker(id: string, size: Locker['size'], occupied = false): Locker {
 describe('ListLockers use case', () => {
   it('returns every locker ordered by id, occupied included', async () => {
     const repository = new InMemoryLockerRepository([
-      locker('czzz', 'LARGE'),
-      locker('c111', 'SMALL', true),
-      locker('caaa', 'MEDIUM'),
+      locker('ZZZZ99', 'LARGE'),
+      locker('222222', 'SMALL', true),
+      locker('AAAAAA', 'MEDIUM'),
     ]);
 
     const result = await new ListLockers(repository).execute();
 
     expect(result.map((locker) => locker.lockerId)).toEqual([
-      'c111',
-      'caaa',
-      'czzz',
+      '222222',
+      'AAAAAA',
+      'ZZZZ99',
     ]);
-    expect(result[0]).toEqual({ lockerId: 'c111', size: 'SMALL', occupied: true });
+    expect(result[0]).toEqual({
+      lockerId: '222222',
+      size: 'SMALL',
+      occupied: true,
+    });
   });
 
   it('returns an empty list for an empty station (never an error)', async () => {
@@ -52,11 +59,11 @@ describe('ListLockers use case', () => {
   });
 
   it('does not mutate the repository list it was handed', async () => {
-    const seed = [locker('czzz', 'LARGE'), locker('caaa', 'SMALL')];
+    const seed = [locker('ZZZZ99', 'LARGE'), locker('AAAAAA', 'SMALL')];
     const repository = new InMemoryLockerRepository(seed);
 
     await new ListLockers(repository).execute();
 
-    expect(seed.map((locker) => locker.lockerId)).toEqual(['czzz', 'caaa']);
+    expect(seed.map((locker) => locker.lockerId)).toEqual(['ZZZZ99', 'AAAAAA']);
   });
 });

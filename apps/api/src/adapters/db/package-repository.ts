@@ -94,7 +94,9 @@ export class PrismaPackageRepository implements PackageRepository {
     const minimumRank = SIZE_RANK[request.size];
 
     // AD-3 verbatim: free lockers that fit, smallest rank first, ties by id,
-    // locked and skipped so a parallel store cannot take the same row.
+    // locked and skipped so a parallel store cannot take the same row. The
+    // id IS the public locker id now (AD-9 v1.1) — it flows to the caller
+    // as `lockerId` untouched.
     const candidates = await tx.$queryRaw<
       CandidateRow[]
     >`SELECT id, size FROM "locker"

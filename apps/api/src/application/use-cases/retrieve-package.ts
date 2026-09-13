@@ -41,7 +41,13 @@ export class RetrievePackage {
   async execute(command: RetrievePackageCommand): Promise<RetrievePackageResult> {
     const { lockerId, pickupCode } = command;
 
-    if (typeof lockerId !== 'string' || lockerId.trim() === '') {
+    // AD-9 v1.1: the customer types a 6-char id — meet them halfway (trim +
+    // uppercase) so pasted or lowercase input just works. Junk of any shape
+    // still lands on the calm LOCKER_NOT_FOUND path, never a crash.
+    const normalizedLockerId =
+      typeof lockerId === 'string' ? lockerId.trim().toUpperCase() : lockerId;
+
+    if (typeof normalizedLockerId !== 'string' || normalizedLockerId === '') {
       throw new InvalidRetrievalRequestError('lockerId must be a non-empty string');
     }
     if (
@@ -53,7 +59,10 @@ export class RetrievePackage {
       );
     }
 
-    const retrieval = await this.packages.retrieve(lockerId, pickupCode);
+    const retrieval = await this.packages.retrieve(
+      normalizedLockerId,
+      pickupCode,
+    );
     const charge = StoragePricingPolicy.charge(
       retrieval.storedAt,
       retrieval.retrievedAt,

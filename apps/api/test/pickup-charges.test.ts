@@ -139,7 +139,7 @@ describe('POST /pickups — charges from recorded storedAt (integration)', () =>
     const response = await app!.inject({
       method: 'POST',
       url: '/pickups',
-      payload: { lockerId: 'cwhatever00000000000000', pickupCode: 'AAAAAAAA', storageCharge: 0 },
+      payload: { lockerId: 'k7q4m2', pickupCode: 'AAAAAAAA', storageCharge: 0 },
     });
 
     expect(response.statusCode).toBe(400);

@@ -92,6 +92,8 @@
                   ],
                   "properties": {
                     "lockerId": {
+                      "pattern": "^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$",
+                      "description": "The locker id — 6 unambiguous characters, e.g. \"K7Q4M2\".",
                       "type": "string"
                     },
                     "size": {
@@ -151,6 +153,8 @@
                         ],
                         "properties": {
                           "id": {
+                            "pattern": "^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$",
+                            "description": "The locker id — 6 unambiguous characters, e.g. \"K7Q4M2\".",
                             "type": "string"
                           },
                           "size": {
@@ -246,6 +250,8 @@
                   ],
                   "properties": {
                     "lockerId": {
+                      "pattern": "^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$",
+                      "description": "The assigned locker id — 6 unambiguous characters.",
                       "type": "string"
                     },
                     "pickupCode": {
@@ -275,6 +281,8 @@
                 "properties": {
                   "lockerId": {
                     "minLength": 1,
+                    "maxLength": 32,
+                    "description": "The locker id; case-insensitive and trimmed by the server (e.g. \"k7q4m2\").",
                     "type": "string"
                   },
                   "pickupCode": {
@@ -304,6 +312,8 @@
                   ],
                   "properties": {
                     "lockerId": {
+                      "pattern": "^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$",
+                      "description": "The locker the package was retrieved from.",
                       "type": "string"
                     },
                     "retrievedAt": {

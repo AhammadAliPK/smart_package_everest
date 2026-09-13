@@ -24,7 +24,7 @@ class ScriptedPackageRepository implements PackageRepository {
   readonly retrieveCalls: { lockerId: string; pickupCode: string }[] = [];
   /** What the scripted transaction will return — or the error it raises. */
   result: PackageRetrieval | Error = {
-    lockerId: 'clocker0000000000000000',
+    lockerId: 'K7Q4M2',
     storedAt: STORED_AT,
     retrievedAt: RETRIEVED_AT,
   };
@@ -61,12 +61,12 @@ describe('RetrievePackage use case', () => {
     const { retrievePackage } = makeUseCase(10);
 
     const result = await retrievePackage.execute({
-      lockerId: 'clocker0000000000000000',
+      lockerId: 'K7Q4M2',
       pickupCode: 'ABCDEFGH',
     });
 
     expect(result).toEqual({
-      lockerId: 'clocker0000000000000000',
+      lockerId: 'K7Q4M2',
       retrievedAt: RETRIEVED_AT,
       storageCharge: 70, // 5 days × 10 + 1 day × 20
       daysCharged: 6,
@@ -88,7 +88,7 @@ describe('RetrievePackage use case', () => {
     const { retrievePackage } = makeUseCase(7);
 
     const result = await retrievePackage.execute({
-      lockerId: 'clocker0000000000000000',
+      lockerId: 'K7Q4M2',
       pickupCode: 'ABCDEFGH',
     });
 
@@ -100,10 +100,11 @@ describe('RetrievePackage use case', () => {
     ['lockerId is missing', { pickupCode: 'ABCDEFGH' }],
     ['lockerId is not a string', { lockerId: 42, pickupCode: 'ABCDEFGH' }],
     ['lockerId is an empty string', { lockerId: '', pickupCode: 'ABCDEFGH' }],
-    ['pickupCode is missing', { lockerId: 'clocker0000000000000000' }],
-    ['pickupCode is not a string', { lockerId: 'clocker0000000000000000', pickupCode: 42 }],
-    ['pickupCode is too short', { lockerId: 'clocker0000000000000000', pickupCode: 'ABC' }],
-    ['pickupCode is too long', { lockerId: 'clocker0000000000000000', pickupCode: 'ABCDEFGHJ' }],
+    ['lockerId is only whitespace', { lockerId: '   ', pickupCode: 'ABCDEFGH' }],
+    ['pickupCode is missing', { lockerId: 'K7Q4M2' }],
+    ['pickupCode is not a string', { lockerId: 'K7Q4M2', pickupCode: 42 }],
+    ['pickupCode is too short', { lockerId: 'K7Q4M2', pickupCode: 'ABC' }],
+    ['pickupCode is too long', { lockerId: 'K7Q4M2', pickupCode: 'ABCDEFGHJ' }],
   ])('rejects before touching storage when %s', async (_label, command) => {
     const { packages, retrievePackage } = makeUseCase();
 
@@ -127,22 +128,22 @@ describe('RetrievePackage use case', () => {
 
     return expect(
       retrievePackage.execute({
-        lockerId: 'clocker0000000000000000',
+        lockerId: 'K7Q4M2',
         pickupCode: 'ABCDEFGH',
       }),
     ).rejects.toMatchObject({ code, status });
   });
 
-  it('forwards the exact lockerId and pickupCode to the port', async () => {
+  it('normalizes the typed id (trim + uppercase) before forwarding', async () => {
     const { packages, retrievePackage } = makeUseCase();
 
     await retrievePackage.execute({
-      lockerId: 'cexact00000000000000000',
+      lockerId: '  k7q4m2 ',
       pickupCode: '23456789',
     });
 
     expect(packages.retrieveCalls).toEqual([
-      { lockerId: 'cexact00000000000000000', pickupCode: '23456789' },
+      { lockerId: 'K7Q4M2', pickupCode: '23456789' },
     ]);
   });
 });

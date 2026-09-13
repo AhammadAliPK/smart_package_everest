@@ -11,7 +11,7 @@ vi.mock('./api/client.js', () => ({
 const retrievePackage = vi.mocked(api.retrievePackage);
 
 const retrieved: PickupReply = {
-  lockerId: 'clx8m2qk4',
+  lockerId: 'K7Q4M2',
   retrievedAt: '2026-09-13T18:00:00.000Z',
   storageCharge: 210,
   daysCharged: 12,
@@ -28,7 +28,7 @@ function apiError(code: string, status: number): unknown {
 
 /** Fill the form the way a customer would. */
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText(/locker id/i), 'clx8m2qk4');
+  await user.type(screen.getByLabelText(/locker id/i), 'k7q4m2');
   pasteCode('A7BXK9ZM');
 }
 
@@ -79,6 +79,18 @@ describe('customer retrieval', () => {
     }
   });
 
+  it('uppercases the locker id as the customer types', async () => {
+    render(<RetrievePage />);
+    const user = userEvent.setup();
+
+    const field = screen.getByLabelText(/locker id/i);
+    await user.type(field, 'k7q4m2');
+
+    expect(field).toHaveValue('K7Q4M2');
+    expect(field).toHaveAttribute('maxlength', '32');
+    expect(field).toHaveAttribute('placeholder', 'e.g. K7Q4M2');
+  });
+
   it('gates the submit until both fields are complete', async () => {
     retrievePackage.mockResolvedValue(retrieved);
     render(<RetrievePage />);
@@ -87,7 +99,7 @@ describe('customer retrieval', () => {
     const submit = screen.getByRole('button', { name: /open my locker/i });
     expect(submit).toBeDisabled();
 
-    await user.type(screen.getByLabelText(/locker id/i), 'clx8m2qk4');
+    await user.type(screen.getByLabelText(/locker id/i), 'K7Q4M');
     expect(submit).toBeDisabled();
 
     await fillValidForm(user);
@@ -103,16 +115,16 @@ describe('customer retrieval', () => {
     await user.click(screen.getByRole('button', { name: /open my locker/i }));
 
     expect(retrievePackage).toHaveBeenCalledWith({
-      lockerId: 'clx8m2qk4',
+      lockerId: 'K7Q4M2',
       pickupCode: 'A7BXK9ZM',
     });
 
-    const confirmation = await screen.findByText(/locker clx8m2qk4 is open\./i);
+    const confirmation = await screen.findByText(/locker K7Q4M2 is open\./i);
     expect(confirmation).toBeInTheDocument();
     expect(screen.getByText('Take your package.')).toBeInTheDocument();
     // Focus lands on the confirmation itself — the result is what's announced.
     expect(
-      screen.getByLabelText(/locker clx8m2qk4 is open\./i),
+      screen.getByLabelText(/locker K7Q4M2 is open\./i),
     ).toHaveFocus();
 
     // The ledger, number for number.
@@ -135,7 +147,7 @@ describe('customer retrieval', () => {
     expect(
       await screen.findByText(/that code doesn’t match this locker\./i),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/locker id/i)).toHaveValue('clx8m2qk4');
+    expect(screen.getByLabelText(/locker id/i)).toHaveValue('K7Q4M2');
     for (let index = 1; index <= 8; index += 1) {
       expect(screen.getByLabelText(`code character ${index}`)).toHaveValue(
         'A7BXK9ZM'.charAt(index - 1),
@@ -173,7 +185,7 @@ describe('customer retrieval', () => {
         /this locker is already empty — the package may have been picked up\./i,
       ),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/locker id/i)).toHaveValue('clx8m2qk4');
+    expect(screen.getByLabelText(/locker id/i)).toHaveValue('K7Q4M2');
     expect(screen.getByLabelText('code character 8')).toHaveValue('M');
   });
 
@@ -190,7 +202,7 @@ describe('customer retrieval', () => {
     await fillValidForm(user);
     await user.click(screen.getByRole('button', { name: /open my locker/i }));
 
-    await screen.findByText(/locker clx8m2qk4 is open\./i);
+    await screen.findByText(/locker K7Q4M2 is open\./i);
     expect(screen.getByText('Storage charge · 3 days')).toBeInTheDocument();
     expect(screen.getByText('Days 1–3 × 10')).toBeInTheDocument();
     expect(screen.queryByText(/days 6–10/i)).not.toBeInTheDocument();
@@ -205,7 +217,7 @@ describe('customer retrieval', () => {
 
     await fillValidForm(user);
     await user.click(screen.getByRole('button', { name: /open my locker/i }));
-    await screen.findByText(/locker clx8m2qk4 is open\./i);
+    await screen.findByText(/locker K7Q4M2 is open\./i);
 
     await user.click(screen.getByRole('button', { name: /retrieve another package/i }));
 

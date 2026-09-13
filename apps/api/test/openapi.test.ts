@@ -7,7 +7,10 @@ import type { Env } from '../src/config/env.js';
 
 /** Docs are static metadata: an in-memory port keeps this suite DB-free. */
 class UnusedLockerRepository implements LockerRepository {
-  async create(size: LockerSize): Promise<Locker> {
+  async create(
+    size: LockerSize,
+    _nextLockerId: () => string,
+  ): Promise<Locker> {
     return { lockerId: 'unused', size, occupied: false };
   }
 

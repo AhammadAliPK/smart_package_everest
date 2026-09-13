@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
+import {
+  LOCKER_ID_LENGTH,
+  PICKUP_CODE_ALPHABET,
+} from '@locker/domain';
+
 import { InvalidLockerSizeError } from '../src/application/errors.js';
 import type { Locker, LockerRepository } from '../src/application/ports/locker-repository.js';
 import { CreateLocker } from '../src/application/use-cases/create-locker.js';
+
+/** The AD-9 v1.1 identifier: 6 chars over the unambiguous alphabet. */
+const LOCKER_ID_PATTERN = new RegExp(
+  `^[${PICKUP_CODE_ALPHABET}]{${LOCKER_ID_LENGTH}}$`,
+);
 
 /**
  * In-memory implementation of the persistence port — the use case is proven
@@ -10,11 +20,13 @@ import { CreateLocker } from '../src/application/use-cases/create-locker.js';
  */
 class InMemoryLockerRepository implements LockerRepository {
   readonly lockers: Locker[] = [];
-  private nextId = 0;
 
-  async create(size: Locker['size']): Promise<Locker> {
+  async create(
+    size: Locker['size'],
+    nextLockerId: () => string,
+  ): Promise<Locker> {
     const locker: Locker = {
-      lockerId: `c${(this.nextId++).toString(36).padStart(24, '0')}`,
+      lockerId: nextLockerId(),
       size,
       occupied: false,
     };
@@ -29,17 +41,25 @@ class InMemoryLockerRepository implements LockerRepository {
 
 function makeUseCase() {
   const repository = new InMemoryLockerRepository();
-  return { repository, createLocker: new CreateLocker(repository) };
+  // Deterministic index stream: each create draws six ascending alphabet
+  // indices, so ids are shaped and distinct without real randomness.
+  let draw = 0;
+  const createLocker = new CreateLocker(repository, (max) => {
+    const value = draw;
+    draw += 1;
+    return value % max;
+  });
+  return { repository, createLocker };
 }
 
 describe('CreateLocker use case', () => {
-  it('creates an unoccupied locker of the chosen size', async () => {
+  it('creates an unoccupied locker of the chosen size with a public id', async () => {
     const { repository, createLocker } = makeUseCase();
 
     const result = await createLocker.execute('MEDIUM');
 
     expect(result).toEqual({
-      lockerId: expect.any(String) as unknown as string,
+      lockerId: 'ABCDEF',
       size: 'MEDIUM',
       occupied: false,
     });
@@ -49,6 +69,14 @@ describe('CreateLocker use case', () => {
       occupied: false,
     });
     expect(result.lockerId).toBe(repository.lockers[0]?.lockerId);
+  });
+
+  it('draws the id from the injected random source', async () => {
+    const { createLocker } = makeUseCase();
+
+    const result = await createLocker.execute('SMALL');
+
+    expect(result.lockerId).toMatch(LOCKER_ID_PATTERN);
   });
 
   it('creates a distinct locker per call', async () => {

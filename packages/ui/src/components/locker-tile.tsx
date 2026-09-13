@@ -3,8 +3,10 @@
  *
  * Availability is the brightest thing on screen: a FREE locker is a cream
  * door (lit, physical); an OCCUPIED one sinks to card/border and goes quiet.
- * The yellow glow sliver is the deck's "live" accent — at most one per
- * surface, so it is opt-in via `accent`.
+ * The size label is always visible and the locker id renders in
+ * `typography.code` ("locker ID in typography.code when shown" — DESIGN.md):
+ * a door with a number on it. The yellow glow sliver is the deck's "live"
+ * accent — at most one per surface, so it is opt-in via `accent`.
  *
  * Free tiles are the whole click target (a real button — "Tap to prefill");
  * occupied tiles are not interactive (EXPERIENCE.md LockerCard).
@@ -15,6 +17,8 @@ import * as React from 'react';
 import { cn } from '../lib/cn.js';
 
 export interface LockerTileProps {
+  /** The public locker id (AD-9 v1.1) — e.g. "K7Q4M2". Rendered in code type. */
+  lockerId: string;
   /** API spelling, uppercased for the label: "SMALL · FREE". */
   size: string;
   occupied: boolean;
@@ -26,7 +30,7 @@ export interface LockerTileProps {
 }
 
 export const LockerTile = React.forwardRef<HTMLLIElement, LockerTileProps>(
-  ({ size, occupied, accent = false, onSelect, className }, ref) => {
+  ({ lockerId, size, occupied, accent = false, onSelect, className }, ref) => {
     const label = `${size} · ${occupied ? 'OCCUPIED' : 'FREE'}`;
 
     if (occupied) {
@@ -42,7 +46,9 @@ export const LockerTile = React.forwardRef<HTMLLIElement, LockerTileProps>(
           <span className="font-sans text-[11px] font-medium tracking-caps text-muted-foreground">
             {label}
           </span>
-          <span className="font-sans text-[13px] font-bold text-muted-foreground">—</span>
+          <span className="font-mono text-[15px] font-medium tracking-code text-muted-foreground">
+            {lockerId}
+          </span>
         </li>
       );
     }
@@ -60,6 +66,9 @@ export const LockerTile = React.forwardRef<HTMLLIElement, LockerTileProps>(
         >
           <span className="font-sans text-[11px] font-medium tracking-caps text-on-brand">
             {label}
+          </span>
+          <span className="font-mono text-[15px] font-medium tracking-code text-on-brand">
+            {lockerId}
           </span>
           <span className="font-sans text-[13px] font-bold text-on-brand">
             Tap to prefill

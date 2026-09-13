@@ -29,3 +29,4 @@ export {
   type StorageCharge,
 } from './storage-pricing.js';
 export { LOCKER_SIZES, isLockerSize, type LockerSize } from './locker-size.js';
+export { LOCKER_ID_LENGTH, generateLockerId } from './locker-id.js';

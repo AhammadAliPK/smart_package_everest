@@ -17,8 +17,12 @@ import {
 import { api, type ApiError, type LockerSizeValue, type StorePackageReply } from '../api/client.js';
 
 export interface StorePanelProps {
-  /** Free-tile click — prefills the size (convenience, never required). */
-  prefill: { size: LockerSizeValue; n: number } | null;
+  /**
+   * Free-tile click — prefills the size and shows the tapped locker's id
+   * read-only (convenience, never required). The API still assigns the
+   * smallest fitting free locker (AD-3); the ResultCard carries the truth.
+   */
+  prefill: { size: LockerSizeValue; lockerId: string; n: number } | null;
   /** Called after a successful store — the grid tile flips to occupied. */
   onStored: () => void | Promise<void>;
 }
@@ -33,13 +37,17 @@ const SIZES: readonly LockerSizeValue[] = ['SMALL', 'MEDIUM', 'LARGE'];
  */
 export function StorePanel({ prefill, onStored }: StorePanelProps) {
   const [size, setSize] = useState<LockerSizeValue | null>(null);
+  const [tappedLockerId, setTappedLockerId] = useState<string | null>(null);
   const [customerRef, setCustomerRef] = useState('');
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<StorePackageReply | null>(null);
   const [failure, setFailure] = useState<ApiError | null>(null);
 
   useEffect(() => {
-    if (prefill !== null) setSize(prefill.size);
+    if (prefill !== null) {
+      setSize(prefill.size);
+      setTappedLockerId(prefill.lockerId);
+    }
   }, [prefill]);
 
   const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
@@ -54,6 +62,7 @@ export function StorePanel({ prefill, onStored }: StorePanelProps) {
       });
       setResult(reply);
       setSize(null);
+      setTappedLockerId(null);
       setCustomerRef('');
       await onStored();
     } catch (error) {
@@ -113,6 +122,29 @@ export function StorePanel({ prefill, onStored }: StorePanelProps) {
               </SelectContent>
             </Select>
           </div>
+
+          <label
+            htmlFor="store-package-locker"
+            className="mt-4 block font-sans text-sm text-foreground"
+          >
+            Locker <span className="text-faint">(from your tile tap)</span>
+          </label>
+          <Input
+            id="store-package-locker"
+            className="mt-1.5 font-mono tracking-code"
+            value={tappedLockerId ?? ''}
+            readOnly
+            autoComplete="off"
+            spellCheck={false}
+            aria-describedby="store-package-locker-hint"
+            placeholder="Smallest fitting free locker"
+          />
+          <p
+            id="store-package-locker-hint"
+            className="mt-1.5 font-sans text-xs text-muted-foreground"
+          >
+            Read-only — the station assigns the smallest fitting free locker.
+          </p>
 
           <label
             htmlFor="store-package-ref"

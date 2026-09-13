@@ -36,10 +36,13 @@ export function AgentPage() {
   const [createOpen, setCreateOpen] = useState(false);
 
   // Free-tile prefill for the store form; `n` re-fires the effect even when
-  // the same size is picked twice after a manual change.
-  const [prefill, setPrefill] = useState<{ size: LockerSizeValue; n: number } | null>(
-    null,
-  );
+  // the same locker is picked twice after a manual change. The tapped
+  // locker's id rides along — the store form shows it read-only.
+  const [prefill, setPrefill] = useState<{
+    size: LockerSizeValue;
+    lockerId: string;
+    n: number;
+  } | null>(null);
 
   const freeCount = lockers ? lockers.filter((l) => !l.occupied).length : 0;
   const firstFree = lockers?.findIndex((l) => !l.occupied) ?? -1;
@@ -123,12 +126,14 @@ export function AgentPage() {
               {lockers.map((locker, index) => (
                 <LockerTile
                   key={locker.id}
+                  lockerId={locker.id}
                   size={locker.size}
                   occupied={locker.occupied}
                   accent={index === firstFree}
                   onSelect={() =>
                     setPrefill((current) => ({
                       size: locker.size,
+                      lockerId: locker.id,
                       n: (current?.n ?? 0) + 1,
                     }))
                   }
