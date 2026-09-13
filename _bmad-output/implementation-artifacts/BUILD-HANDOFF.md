@@ -1,6 +1,6 @@
 # Build Handoff — read this first in any new session
 
-Single source of truth for where the Everest build stands. Updated 2026-09-13 ~21:55.
+Single source of truth for where the Everest build stands. Updated 2026-09-14 (Epic 5 spec staged, awaiting approval).
 
 ## Process rules (user-set, non-negotiable)
 
@@ -15,8 +15,7 @@ Single source of truth for where the Everest build stands. Updated 2026-09-13 ~2
 - **Done (cont.): AD-9 amendment v1.1 — human locker ids** (`spec-ad9-amendment-human-locker-ids.md`): the 25-char cuid is GONE. `locker.id` is now a generated 6-char value over the unambiguous pickup-code alphabet (`K7Q4M2` — no 0/O/1/I), and it IS the primary key — no surrogate key, no second column (user renegotiated the drafted "code column" mid-build: one table, one id). Create retries the ~1/887M collision (bounded); retrieval trims + uppercases; the `/retrieve` input auto-uppercases with `placeholder="e.g. K7Q4M2"`. Migration `20260913231500_human_locker_ids` swaps the PK in place (md5-derived backfill; applied to dev, nothing in production). Tests 227 (domain 41, api 105, web 81). **User must restart both dev servers before re-smoking** (domain dist + prisma client regenerated).
 - **Deviations recorded in the Epic 4 spec's Implementation Notes:** `apps/web` alone pins typescript 5.9.3 (TS7 native has no JS compiler API; openapi-typescript needs it); light-theme ring darkened to `#9C6400` (brand `#F5A100` ring is ~1.9:1 on light paper, under the 3:1 WCAG 2.4.11 floor); CodeInput deliberately duplicates the 0/O/1/I display rule (web is banned from `@locker/domain`).
 - **Pending user action:** manual smoke of the running stack (spec verification item, unticked until they pass): postgres + `npx pnpm@12.4.1 --filter @locker/api dev` + `npx pnpm@12.4.1 --filter @locker/web dev`, exercise chooser → store → retrieve → errors → themes.
-- **Next up:** Epic 5 (2 stories: production containers + Render deploy; README with approach/decisions/AI-use disclosure — challenge requires both; needs the user's Render account. See memory: create the free Render Postgres AT deploy time, 30-day clock; expect idle spin-down). Write the spec, one approval, direct implementation. Deploy deadline ~2026-09-18.
-- **Environment now:** `locker-postgres` container already running on host port 55432 (`.env` set); Node 22 + `npx pnpm@12.4.1`; nothing else running.
+- **Next up: Epic 5** — spec WRITTEN, awaiting approval: `spec-5-1-5-2-deploy-readme.md`. Story 5.1: harden the API image (container-ops fold-in from `deferred-work.md`), NEW web Dockerfile (nginx, SPA deep links), NEW `CORS_ORIGIN` env on the API (cross-origin Render deploy — dev via Vite proxy stays same-origin), compose gains the `web` service (full local stack), `render.yaml` blueprint (3 free resources: Postgres created AT first launch — 30-day clock — + api + web), clean-checkout compose proof, live deploy + smoke with the user. Story 5.2: root README (approach level-by-level, decisions with why incl. the AD-9 v1.1 story, assumptions, trade-offs, future work, run instructions with the concurrency-proof suites, 4-question AI-use disclosure) + `epic-1..5` git tags (none exist today — graded criterion). Deadline ~2026-09-18.
 - **Environment now:** `locker-postgres` container already running on host port 55432 (`.env` set); Node 22 + `npx pnpm@12.4.1`; nothing else running.
 
 ## Workflow skeleton (bmad-build, compressed)
