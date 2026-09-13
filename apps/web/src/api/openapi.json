@@ -1,0 +1,368 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Smart Package Locker API",
+    "description": "Locker station REST API — lockers, storage and pickup (AD-1..AD-9).",
+    "version": "0.1.0"
+  },
+  "components": {
+    "schemas": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lockers": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "size"
+                ],
+                "properties": {
+                  "size": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "SMALL"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "MEDIUM"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "LARGE"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "required": [
+                    "lockerId",
+                    "size",
+                    "occupied"
+                  ],
+                  "properties": {
+                    "lockerId": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "SMALL"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "MEDIUM"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "LARGE"
+                          ]
+                        }
+                      ]
+                    },
+                    "occupied": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "required": [
+                    "lockers"
+                  ],
+                  "properties": {
+                    "lockers": {
+                      "type": "array",
+                      "items": {
+                        "additionalProperties": false,
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "size",
+                          "occupied"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "SMALL"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "MEDIUM"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "LARGE"
+                                ]
+                              }
+                            ]
+                          },
+                          "occupied": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/packages": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "size"
+                ],
+                "properties": {
+                  "size": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "SMALL"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "MEDIUM"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "LARGE"
+                        ]
+                      }
+                    ]
+                  },
+                  "customerRef": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "required": [
+                    "lockerId",
+                    "pickupCode"
+                  ],
+                  "properties": {
+                    "lockerId": {
+                      "type": "string"
+                    },
+                    "pickupCode": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pickups": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "lockerId",
+                  "pickupCode"
+                ],
+                "properties": {
+                  "lockerId": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "pickupCode": {
+                    "minLength": 8,
+                    "maxLength": 8,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "required": [
+                    "lockerId",
+                    "retrievedAt",
+                    "storageCharge",
+                    "daysCharged",
+                    "breakdown"
+                  ],
+                  "properties": {
+                    "lockerId": {
+                      "type": "string"
+                    },
+                    "retrievedAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "storageCharge": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "daysCharged": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "breakdown": {
+                      "type": "array",
+                      "items": {
+                        "additionalProperties": false,
+                        "type": "object",
+                        "required": [
+                          "tier",
+                          "days",
+                          "rate",
+                          "amount"
+                        ],
+                        "properties": {
+                          "tier": {
+                            "minimum": 1,
+                            "maximum": 3,
+                            "type": "integer"
+                          },
+                          "days": {
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "rate": {
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "amount": {
+                            "minimum": 1,
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "lockers",
+      "description": "Locker station inventory"
+    }
+  ]
+}

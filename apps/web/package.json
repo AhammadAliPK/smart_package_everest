@@ -3,10 +3,37 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "React SPA (Vite) over the REST API — Epic 4 owns its internals. Placeholder until then (AD-10).",
+  "description": "React SPA (Vite) over the locker REST API — chooser landing, agent console, customer retrieval. Renders API responses verbatim (AD-10).",
   "scripts": {
-    "build": "node -e \"console.log('@locker/web: placeholder — Epic 4 owns apps/web internals (AD-10)')\"",
-    "test": "node -e \"console.log('@locker/web: placeholder — no tests until Epic 4')\"",
-    "lint": "node -e \"console.log('@locker/web: placeholder — no source to lint until Epic 4')\""
+    "dev": "vite",
+    "generate": "openapi-typescript src/api/openapi.json -o src/api/schema.d.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "vite build",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource/dm-serif-display": "5.3.0",
+    "@locker/ui": "workspace:*",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router": "8.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "jsdom": "30.0.1",
+    "openapi-typescript": "7.13.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vite": "8.3.0",
+    "vitest": "5.0.0"
   }
 }

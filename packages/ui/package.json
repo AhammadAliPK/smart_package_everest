@@ -3,25 +3,30 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Presentational React component library (shadcn/Tailwind) — Epic 4 owns its internals. Placeholder until then (AD-10).",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "description": "Presentation-only React component library for the Everest Lockers UI — shadcn-style primitives carrying the brand layer (DESIGN.md). Never fetches, never computes domain outcomes (AD-10).",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
+    ".": "./src/index.ts"
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint ."
   },
-  "dependencies": {},
+  "peerDependencies": {
+    "react": "19.3.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "1.1.23",
+    "@radix-ui/react-select": "2.3.7",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.45.0",
+    "tailwind-merge": "3.7.0"
+  },
   "devDependencies": {
+    "@types/react": "19.3.0",
     "typescript": "7.0.2",
     "vitest": "5.0.0"
   }

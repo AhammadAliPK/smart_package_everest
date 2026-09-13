@@ -28,6 +28,8 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const fixtures = [
   'packages/domain/src/__fixtures__/boundary-violation.fixture.ts',
   'apps/api/src/application/__fixtures__/boundary-violation.fixture.ts',
+  'packages/ui/src/__fixtures__/boundary-violation.fixture.ts',
+  'apps/web/src/__fixtures__/boundary-violation.fixture.ts',
 ];
 
 const eslintBin = join(repoRoot, 'node_modules', '.bin', 'eslint');

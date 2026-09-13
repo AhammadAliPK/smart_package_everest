@@ -11,3 +11,6 @@ allowBuilds:
   "@prisma/engines": true
   esbuild: true
   prisma: true
+
+minimumReleaseAgeExclude:
+  - tailwind-merge@3.7.0

@@ -36,6 +36,23 @@ const tsParser = {
   },
 };
 
+/** `.tsx` needs the TypeScript syntax plugin in JSX mode plus JSX itself. */
+const tsxParser = {
+  files: ['**/*.tsx'],
+  languageOptions: {
+    parser: babelParser,
+    parserOptions: {
+      requireConfigFile: false,
+      babelOptions: {
+        plugins: [
+          ['@babel/plugin-syntax-typescript', { isTSX: true }],
+          '@babel/plugin-syntax-jsx',
+        ],
+      },
+    },
+  },
+};
+
 /** AD-2: nothing inward-facing may reach for HTTP, DB or schema tooling. */
 const forbiddenAcrossTheBoundary = {
   paths: ['fastify', '@sinclair/typebox'],
@@ -73,6 +90,38 @@ const boundaryZones = [
       ],
     },
   },
+  {
+    // AD-10 / FR20: `@locker/ui` is presentation-only — it may not import the
+    // app, the API's server stack, or escape its package via relative paths.
+    files: ['packages/ui/src/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: ['@locker/web', ...forbiddenAcrossTheBoundary.paths],
+          patterns: [
+            ...forbiddenAcrossTheBoundary.patterns,
+            '../../**',
+            '../../*',
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // AD-10: the SPA computes no domain outcomes — it renders API responses
+    // verbatim and holds no domain knowledge, so `@locker/domain` stays out.
+    files: ['apps/web/src/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: ['@locker/domain'],
+          patterns: [],
+        },
+      ],
+    },
+  },
 ];
 
 export default [
@@ -89,6 +138,7 @@ export default [
     ],
   },
   tsParser,
+  tsxParser,
   ...boundaryZones,
   {
     // `no-unused-vars` stays on JS files only: under the babel parser it

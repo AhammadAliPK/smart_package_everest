@@ -10,8 +10,17 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "db:generate"],
+      "dependsOn": ["^build", "db:generate", "generate"],
       "outputs": ["dist/**"]
+    },
+    "generate": {
+      "dependsOn": ["@locker/api#export-openapi"],
+      "outputs": ["src/api/schema.d.ts"]
+    },
+    "export-openapi": {
+      "dependsOn": ["db:generate"],
+      "outputs": ["../web/src/api/openapi.json"],
+      "cache": false
     },
     "test": {
       "dependsOn": ["build"],

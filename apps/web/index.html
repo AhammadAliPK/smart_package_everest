@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Everest Lockers</title>
+    <script>
+      // UX-DR3: theme applies before first paint — no white flash. Dark is the
+      // default; only an explicit stored "light" escapes it.
+      (function () {
+        try {
+          if (localStorage.getItem('locker-theme') !== 'light') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (error) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

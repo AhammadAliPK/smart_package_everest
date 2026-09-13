@@ -1,0 +1,142 @@
+/*
+ * Everest Lockers theme (DESIGN.md, verbatim tokens — UX-DR1).
+ *
+ * Two layers: theme deltas (light :root / dark .dark) and a brand layer that
+ * never changes. Everything maps onto shadcn-style Tailwind token names via
+ * `@theme inline`, so utilities like `bg-card` / `text-muted-foreground` /
+ * `bg-brand` flip with the theme while `bg-brand` stays constant. Dark is the
+ * reference rendering; light is a full inversion, never a per-surface mix.
+ */
+
+@import 'tailwindcss';
+
+/* Class-based dark mode (html gets .dark; set pre-paint in index.html). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Scan @locker/ui's source for class names — it ships TSX, not CSS. */
+@source '../../packages/ui/src';
+
+:root {
+  /* Light theme — warm paper, never stark white. */
+  --background: #f5f2ec;
+  --foreground: #1a1915;
+  --card: #fbf9f3;
+  --border: #e5dfd2;
+  /* Muted must hold AA on card at 12–14px in BOTH themes (UX-DR1/DR18);
+     the deck's #8A8A8A fails on light paper, so light gets a deeper warm gray. */
+  --muted: #5b594f;
+  --faint: #8b8b84; /* decorative only — never sole information */
+  /* Gold is a dark-theme keyword tint; light keeps a readable equivalent. */
+  --gold: #7a6a45;
+}
+
+.dark {
+  /* Dark theme — the deck's matte near-black. */
+  --background: #0d0d0b;
+  --foreground: #f5f2ec;
+  --card: #141414;
+  --border: #2a2a2a;
+  --muted: #a9a9a1;
+  --faint: #8b8b84;
+  --gold: #e0c9a6;
+}
+
+:root {
+  /* Brand layer — constant across themes (the deck's identity). */
+  --brand: #f5a100; /* the single saturated color */
+  --on-brand: #1a1508; /* ink on orange (~9:1); white is the logo mark's alone */
+  --butter: #f5efb8; /* display-text highlight on dark; tint wash on light */
+  --cream: #e8d9a8; /* a FREE locker looks like this */
+  --cream-edge: #c9b57e;
+  --glow: #ffd84d; /* sparingly: live/active sliver, ≤1 per surface */
+  --ring: #f5a100; /* focus ring is brand orange, AA-visible on both themes */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-muted-foreground: var(--muted);
+  --color-faint: var(--faint);
+  --color-gold: var(--gold);
+
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-butter: var(--butter);
+  --color-cream: var(--cream);
+  --color-cream-edge: var(--cream-edge);
+  --color-glow: var(--glow);
+  --color-ring: var(--ring);
+}
+
+@theme {
+  /* Typography (UX-DR2) — DM Serif Display is the curator, Inter does the rest. */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'DM Serif Display', ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-display: 2.5rem; /* 40px */
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: 0.01em;
+  --text-display-sm: 1.5rem; /* 24px */
+  --text-display-sm--line-height: 1.2;
+  --text-display-sm--letter-spacing: 0.01em;
+  --text-label-caps: 0.75rem; /* 12px eyebrows */
+  --text-label-caps--line-height: 1.4;
+  --text-code: 1.75rem; /* 28px — IDs and pickup codes only */
+  --text-code--line-height: 1.2;
+  --text-code--letter-spacing: 0.15em;
+
+  --tracking-caps: 0.2em;
+  --tracking-code: 0.15em;
+
+  /* Shape (UX-DR4) — sharper than shadcn defaults; matte "object" geometry. */
+  --radius-sm: 4px; /* inputs, badge */
+  --radius-md: 6px; /* buttons, chips */
+  --radius-lg: 8px; /* cards, dialogs, locker tiles */
+
+  /* Brand spacing additions on top of Tailwind's scale. */
+  --spacing-gutter: 1.5rem; /* 24px */
+  --spacing-margin-mobile: 1.25rem; /* 20px */
+  --spacing-margin-desktop: 4rem; /* 64px */
+  --spacing-section: 4rem; /* 64px section gap */
+}
+
+@layer base {
+  html {
+    background-color: var(--background);
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  ::selection {
+    background-color: var(--brand);
+    color: var(--on-brand);
+  }
+
+  /* Route changes focus the page title (UX-DR18) — give it the brand ring. */
+  .page-title:focus {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* UX-DR18/20: honor reduced motion — opacity-only or nothing. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
