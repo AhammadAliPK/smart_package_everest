@@ -114,7 +114,7 @@ Dependency direction is strictly inward: `adapters → application → domain`. 
 | TypeScript | 7.0.2 |
 | Node.js | 24 LTS (runtime; Docker base `node:24-alpine`; Active LTS — 22 is maintenance-only) |
 | Fastify | 5.12.4 |
-| typebox | 1.3.30 (with `@fastify/type-provider-type-box` 6.1.0) |
+| typebox | 0.34.52 (with `@fastify/type-provider-typebox` 6.1.0) |
 | @fastify/swagger | 9.8.1 |
 | @fastify/swagger-ui | 6.1.1 (serves `/docs`; swagger alone is JSON-only) |
 | Prisma | 7.10.0 (8.x is RC-only — do not upgrade casually; v7 API is `prisma.$transaction` + `tx.$queryRaw`) |
