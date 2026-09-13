@@ -1,9 +1,15 @@
 import { SIZE_RANK, type LockerSize } from '@locker/domain';
 
-import { NoSuitableLockerError } from '../../application/errors.js';
+import {
+  InvalidPickupCodeError,
+  LockerEmptyError,
+  LockerNotFoundError,
+  NoSuitableLockerError,
+} from '../../application/errors.js';
 import type {
   PackageAllocation,
   PackageAllocationRequest,
+  PackageRetrieval,
   PackageRepository,
 } from '../../application/ports/package-repository.js';
 import { Prisma, type PrismaClient } from './generated/prisma/client.js';
@@ -26,6 +32,12 @@ interface CandidateRow {
   size: LockerSize;
 }
 
+/** The raw row the retrieval resolve join returns (AD-6). */
+interface StoredRow {
+  package_id: string;
+  stored_at: Date;
+}
+
 /**
  * Prisma implementation of the package persistence port (AD-3, AD-6, AD-8).
  *
@@ -34,7 +46,9 @@ interface CandidateRow {
  * concurrency authority — the fluent API cannot express row locks), a
  * count-checked CAS occupy, and the package insert — commit or roll back
  * atomically at READ COMMITTED. `NoSuitableLockerError` is thrown from inside
- * the transaction, so nothing is written when no locker fits.
+ * the transaction, so nothing is written when no locker fits. Retrieval
+ * (`retrieveWithin`) is the mirror image: one locked join resolve, a
+ * count-checked CAS free, and the RETRIEVED flip.
  */
 export class PrismaPackageRepository implements PackageRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -121,4 +135,101 @@ export class PrismaPackageRepository implements PackageRepository {
       storedAt: created.storedAt,
     };
   }
+
+  async retrieve(
+    lockerId: string,
+    pickupCode: string,
+  ): Promise<PackageRetrieval> {
+    for (let attempt = 1; attempt <= MAX_TRANSACTION_ATTEMPTS; attempt += 1) {
+      try {
+        return await this.prisma.$transaction(
+          (tx) => retrieveWithin(tx, lockerId, pickupCode),
+          TRANSACTION_OPTIONS,
+        );
+      } catch (error) {
+        // The four calm outcomes are verdicts, not conflicts — never retried.
+        if (
+          error instanceof LockerNotFoundError ||
+          error instanceof InvalidPickupCodeError ||
+          error instanceof LockerEmptyError
+        ) {
+          throw error;
+        }
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === WRITE_CONFLICT
+        ) {
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw new Prisma.PrismaClientKnownRequestError(
+      'The retrieval transaction could not be completed after retries',
+      { code: WRITE_CONFLICT, clientVersion: Prisma.prismaVersion.client },
+    );
+  }
+}
+
+/**
+ * One retrieval transaction attempt (FR7, AD-4, AD-6): resolve the package
+ * with a single locked join of locker → `occupied_by` → `pickup_code` +
+ * `STORED`, CAS-free the locker, flip the package. Every failure path throws
+ * having written nothing.
+ *
+ * The `FOR UPDATE` on the resolve is what makes two parallel pickups of the
+ * same package safe: the loser blocks on the row lock, then Postgres's
+ * READ-COMMITTED re-check drops the row the winner already RETRIEVED, so it
+ * falls through to the outcome branch and answers `LOCKER_EMPTY`.
+ */
+async function retrieveWithin(
+  tx: Prisma.TransactionClient,
+  lockerId: string,
+  pickupCode: string,
+): Promise<PackageRetrieval> {
+  const stored = await tx.$queryRaw<StoredRow[]>`
+    SELECT p.id AS package_id, p.stored_at AS stored_at
+    FROM "locker" l
+    JOIN "stored_package" p ON p.id = l.occupied_by
+    WHERE l.id = ${lockerId} AND p.pickup_code = ${pickupCode} AND p.status = 'STORED'
+    FOR UPDATE`;
+
+  if (stored.length === 0) {
+    // Distinguish the three calm outcomes with one read of the locker row.
+    const locker = await tx.locker.findUnique({
+      where: { id: lockerId },
+      select: { occupiedBy: true },
+    });
+    if (locker === null) {
+      throw new LockerNotFoundError(lockerId);
+    }
+    if (locker.occupiedBy === null) {
+      throw new LockerEmptyError(lockerId);
+    }
+    // Occupied, but not by a STORED package carrying this code.
+    throw new InvalidPickupCodeError(lockerId);
+  }
+
+  const { package_id: packageId, stored_at: storedAt } = stored[0]!;
+  const retrievedAt = new Date();
+
+  // AD-4: occupancy changes only through a compare-and-swap. Holding the row
+  // lock from the join the count must be 1 — anything else rolls back.
+  const freed = await tx.locker.updateMany({
+    where: { id: lockerId, occupiedBy: packageId },
+    data: { occupiedBy: null },
+  });
+  if (freed.count !== 1) {
+    throw new Error(
+      `Locker ${lockerId} was freed concurrently (expected package ${packageId})`,
+    );
+  }
+
+  await tx.storedPackage.update({
+    where: { id: packageId },
+    data: { status: 'RETRIEVED', retrievedAt },
+  });
+
+  return { lockerId, storedAt, retrievedAt };
 }

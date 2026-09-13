@@ -16,6 +16,16 @@ export interface PackageAllocation {
   readonly storedAt: Date;
 }
 
+/** The facts a successful retrieval persisted. */
+export interface PackageRetrieval {
+  /** The locker the package came out of (AD-9). */
+  readonly lockerId: string;
+  /** Exact storage instant, returned so the use case can price the stay (AD-5). */
+  readonly storedAt: Date;
+  /** The instant the retrieval transaction committed. */
+  readonly retrievedAt: Date;
+}
+
 /**
  * Persistence port for packages.
  *
@@ -23,10 +33,17 @@ export interface PackageAllocation {
  * (AD-3): `nextPickupCode` is a zero-arg factory the adapter may call more
  * than once — once per bounded attempt — so a code collision with an existing
  * `STORED` package regenerates instead of pre-checking (AD-6).
+ *
+ * `retrieve` is likewise one transaction (AD-4, AD-6): it resolves the
+ * package via a single join of locker + code + STORED status, CAS-frees the
+ * locker and flips the package to RETRIEVED — or raises
+ * `LockerNotFoundError` / `InvalidPickupCodeError` / `LockerEmptyError`
+ * having written nothing.
  */
 export interface PackageRepository {
   allocate(
     request: PackageAllocationRequest,
     nextPickupCode: () => string,
   ): Promise<PackageAllocation>;
+  retrieve(lockerId: string, pickupCode: string): Promise<PackageRetrieval>;
 }

@@ -13,6 +13,7 @@ import { registerOpenApi } from './plugins/openapi.js';
 import { healthRoutes } from './routes/health.js';
 import { lockerRoutes } from './routes/lockers.js';
 import { packageRoutes } from './routes/packages.js';
+import { pickupRoutes } from './routes/pickups.js';
 
 /** Options for {@link buildApp}. */
 export interface BuildAppOptions {
@@ -66,6 +67,10 @@ export async function buildApp(
   await app.register(healthRoutes);
   await app.register(lockerRoutes, { lockerRepository });
   await app.register(packageRoutes, { packageRepository });
+  await app.register(pickupRoutes, {
+    packageRepository,
+    storageFeeBase: env.storageFeeBase,
+  });
 
   return app;
 }

@@ -52,3 +52,35 @@ export class NoSuitableLockerError extends AppError {
     );
   }
 }
+
+/** The retrieval request failed shape validation (FR8, AD-7: 400). */
+export class InvalidRetrievalRequestError extends AppError {
+  constructor(reason: string) {
+    super('VALIDATION_ERROR', 400, reason);
+  }
+}
+
+/** The locker id names no locker in the station (FR8, AD-7: 404). */
+export class LockerNotFoundError extends AppError {
+  constructor(lockerId: string) {
+    super('LOCKER_NOT_FOUND', 404, `There is no locker “${lockerId}” at this station`);
+  }
+}
+
+/** The code does not match the package in that locker (FR8, AD-7: 404, zero writes). */
+export class InvalidPickupCodeError extends AppError {
+  constructor(lockerId: string) {
+    super(
+      'INVALID_PICKUP_CODE',
+      404,
+      `That code does not match the package in locker “${lockerId}”`,
+    );
+  }
+}
+
+/** The locker holds nothing — never stored or already retrieved (FR8, AD-7: 409). */
+export class LockerEmptyError extends AppError {
+  constructor(lockerId: string) {
+    super('LOCKER_EMPTY', 409, `Locker “${lockerId}” is empty`);
+  }
+}

@@ -10,6 +10,7 @@ import type { Locker, LockerRepository } from '../src/application/ports/locker-r
 import type {
   PackageAllocation,
   PackageAllocationRequest,
+  PackageRetrieval,
   PackageRepository,
 } from '../src/application/ports/package-repository.js';
 import { StorePackage } from '../src/application/use-cases/store-package.js';
@@ -99,6 +100,13 @@ class InMemoryPackageRepository implements PackageRepository {
     };
     this.allocations.push({ ...allocation, request });
     return allocation;
+  }
+
+  async retrieve(
+    _lockerId: string,
+    _pickupCode: string,
+  ): Promise<PackageRetrieval> {
+    throw new Error('retrieve is not part of this suite');
   }
 }
 

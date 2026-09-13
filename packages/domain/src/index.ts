@@ -23,4 +23,9 @@ export {
   generatePickupCode,
   type RandomSource,
 } from './pickup-code.js';
+export {
+  StoragePricingPolicy,
+  type ChargeBreakdownRow,
+  type StorageCharge,
+} from './storage-pricing.js';
 export { LOCKER_SIZES, isLockerSize, type LockerSize } from './locker-size.js';
