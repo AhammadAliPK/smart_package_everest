@@ -1,5 +1,9 @@
-import 'dotenv/config';
+import { loadNearestEnvFile } from './src/config/load-env.js';
 import { defineConfig } from 'prisma/config';
+
+// Same rule as the API boot: find the repo-root `.env` from wherever the CLI
+// was invoked, without ever overriding real environment variables.
+loadNearestEnvFile();
 
 /**
  * Prisma 7 CLI configuration (Prisma 7 no longer reads `url` from
