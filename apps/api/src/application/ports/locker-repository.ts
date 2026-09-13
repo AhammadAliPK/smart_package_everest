@@ -19,4 +19,10 @@ export interface Locker {
 export interface LockerRepository {
   /** Persist a new, unoccupied locker of the given size. */
   create(size: LockerSize): Promise<Locker>;
+  /**
+   * Every locker in the station, free and occupied alike. No ordering is
+   * promised — the `ListLockers` use case normalises it to the frozen AD-1
+   * "ordered by id" contract.
+   */
+  list(): Promise<readonly Locker[]>;
 }

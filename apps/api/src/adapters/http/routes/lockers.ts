@@ -1,10 +1,12 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 import { CreateLocker } from '../../../application/use-cases/create-locker.js';
+import { ListLockers } from '../../../application/use-cases/list-lockers.js';
 import type { LockerRepository } from '../../../application/ports/locker-repository.js';
 import {
   createLockerReplySchema,
   createLockerRequestSchema,
+  listLockersReplySchema,
 } from '../schemas/locker-schema.js';
 
 /** Dependencies the routes need — injected by `buildApp`. */
@@ -24,6 +26,7 @@ export interface LockerRoutesOptions {
 export const lockerRoutes: FastifyPluginAsyncTypebox<LockerRoutesOptions> =
   async (app, { lockerRepository }) => {
     const createLocker = new CreateLocker(lockerRepository);
+    const listLockers = new ListLockers(lockerRepository);
 
     app.post(
       '/lockers',
@@ -37,6 +40,28 @@ export const lockerRoutes: FastifyPluginAsyncTypebox<LockerRoutesOptions> =
         const locker = await createLocker.execute(request.body.size);
 
         return reply.code(201).send(locker);
+      },
+    );
+
+    app.get(
+      '/lockers',
+      {
+        schema: {
+          response: { 200: listLockersReplySchema },
+        },
+      },
+      async (_request, reply) => {
+        const lockers = await listLockers.execute();
+
+        // AD-1: list items carry the cuid as `id` — the one place the field is
+        // not named `lockerId` — and serialize to exactly three fields.
+        return reply.code(200).send({
+          lockers: lockers.map((locker) => ({
+            id: locker.lockerId,
+            size: locker.size,
+            occupied: locker.occupied,
+          })),
+        });
       },
     );
   };

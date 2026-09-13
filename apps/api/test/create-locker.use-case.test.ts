@@ -21,6 +21,10 @@ class InMemoryLockerRepository implements LockerRepository {
     this.lockers.push(locker);
     return locker;
   }
+
+  async list(): Promise<Locker[]> {
+    return this.lockers;
+  }
 }
 
 function makeUseCase() {

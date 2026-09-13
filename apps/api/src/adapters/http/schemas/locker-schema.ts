@@ -36,3 +36,28 @@ export const createLockerReplySchema = Type.Object(
 
 export type CreateLockerRequest = Static<typeof createLockerRequestSchema>;
 export type CreateLockerReply = Static<typeof createLockerReplySchema>;
+
+/**
+ * `GET /lockers` list item — the AD-1 frozen contract verbatim: the cuid is
+ * carried as `id` here (unlike the AD-9 `lockerId` of the create reply) and
+ * these three fields are all a list item may ever carry.
+ */
+export const lockerListItemSchema = Type.Object(
+  {
+    id: Type.String(),
+    size: lockerSizeSchema,
+    occupied: Type.Boolean(),
+  },
+  { additionalProperties: false },
+);
+
+/** `GET /lockers` 200 response — an empty station is `{"lockers":[]}`. */
+export const listLockersReplySchema = Type.Object(
+  {
+    lockers: Type.Array(lockerListItemSchema),
+  },
+  { additionalProperties: false },
+);
+
+export type LockerListItem = Static<typeof lockerListItemSchema>;
+export type ListLockersReply = Static<typeof listLockersReplySchema>;

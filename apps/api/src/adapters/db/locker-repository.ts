@@ -22,4 +22,18 @@ export class PrismaLockerRepository implements LockerRepository {
       occupied: created.occupiedBy !== null,
     };
   }
+
+  /**
+   * Read-only projection of the `locker` table: `occupied` is derived straight
+   * from `occupied_by IS NOT NULL` — the list never joins packages (AD-1).
+   */
+  async list(): Promise<Locker[]> {
+    const rows = await this.prisma.locker.findMany();
+
+    return rows.map((row) => ({
+      lockerId: row.id,
+      size: row.size,
+      occupied: row.occupiedBy !== null,
+    }));
+  }
 }

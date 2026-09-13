@@ -10,6 +10,10 @@ class UnusedLockerRepository implements LockerRepository {
   async create(size: LockerSize): Promise<Locker> {
     return { lockerId: 'unused', size, occupied: false };
   }
+
+  async list(): Promise<Locker[]> {
+    return [];
+  }
 }
 
 describe('GET /docs (OpenAPI, AD-1)', () => {
