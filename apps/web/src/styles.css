@@ -28,6 +28,9 @@
   --faint: #8b8b84; /* decorative only — never sole information */
   /* Gold is a dark-theme keyword tint; light keeps a readable equivalent. */
   --gold: #7a6a45;
+
+  /* Light cards may carry a barely-there warm shadow on hover (DESIGN.md). */
+  --hover-shadow: 0 1px 3px rgb(26 25 21 / 0.07);
 }
 
 .dark {
@@ -39,6 +42,9 @@
   --muted: #a9a9a1;
   --faint: #8b8b84;
   --gold: #e0c9a6;
+
+  /* Dark theme is matte: depth is tonal, never shadowed (DESIGN.md). */
+  --hover-shadow: none;
 }
 
 :root {
@@ -68,6 +74,8 @@
   --color-cream-edge: var(--cream-edge);
   --color-glow: var(--glow);
   --color-ring: var(--ring);
+
+  --shadow-hover: var(--hover-shadow);
 }
 
 @theme {

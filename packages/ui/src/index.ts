@@ -11,6 +11,7 @@
 export { cn } from './lib/cn.js';
 export { BrandBadge, BrandDash, Eyebrow, Wordmark } from './components/brand.js';
 export { Button, buttonVariants, type ButtonProps } from './components/button.js';
+export { RoleCard, type RoleCardProps } from './components/role-card.js';
 export { Input } from './components/input.js';
 export {
   Dialog,
