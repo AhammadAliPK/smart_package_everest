@@ -11,8 +11,10 @@ Single source of truth for where the Everest build stands. Updated 2026-09-13 ~1
 
 ## Where we are
 
-- **Done:** Epic 1 COMPLETE (all five stories). 1.1 scaffold + 1.2 POST /lockers committed (through `ee00959`). 1.3–1.5 (GET /lockers frozen contract, POST /packages SKIP LOCKED allocation + pickup codes, 409 refusal) verified 14/14 pipelines, 87 tests — **changes sit UNCOMMITTED in the working tree awaiting the user's commits** (13-commit test-first plan was handed over 2026-09-13; spec `spec-1-3-1-5-complete-level-1-storage.md` status done). If the tree still shows 1.3–1.5 files uncommitted, the user hasn't run the plan yet — do not commit, do not reset.
-- **Next batches:** Epic 2+3 combined (retrieval 2.1–2.2, charges 2.3, concurrency proof 3.1–3.2) — user prefers DIRECT implementation by the orchestrator (no subagent dispatch) for speed. Then Epic 4 (UI), then Epic 5 (Render deploy + README with AI disclosure — needs the user's Render account).
+- **Done:** Epic 1 COMPLETE and FULLY COMMITTED through `b9d0b59` (all 5 stories: scaffold, POST /lockers, GET /lockers frozen contract, POST /packages with SKIP LOCKED smallest-fit allocation + pickup codes, 409 refusal). Pipelines 14/14, 87 tests. Working tree clean except as noted below.
+- **Next up (spec written, awaiting approval):** `spec-2-1-3-2-retrieval-charges-concurrency.md` (status: planning) — Stories 2.1–2.3 + 3.1–3.2: `POST /pickups` atomic retrieval, four calm error outcomes, AD-5 tiered pricing with breakdown, parallel/oversubscription/mixed concurrency proof, ×3 stable runs. **First action in the new session: show the user a one-paragraph summary and get approval (AskUserQuestion), then implement DIRECTLY (route: direct — no subagent dispatch; user prefers orchestrator-implemented for speed).** Per-story test-first commits are Claude's job now (user delegated: "now you can do commit one by one").
+- **Then:** Epic 4 (UI — read the UX contract in `_bmad-output/planning-artifacts/ux-designs/ux-smart_package_everest-2026-09-13/DESIGN.md` + `EXPERIENCE.md`; consider splitting 4.1–4.3 / 4.4–4.7), then Epic 5 (Render deploy + README with AI-use disclosure — needs the user's Render account; see memory: create the free Postgres AT deploy time, 30-day clock).
+- **Environment now:** `locker-postgres` container already running on host port 55432 (`.env` set); Node 22 + `npx pnpm@12.4.1`; nothing else running.
 
 ## Workflow skeleton (bmad-build, compressed)
 
