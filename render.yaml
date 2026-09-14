@@ -11,8 +11,9 @@
 #   Slug-collision runbook: if `everest-api` / `everest-web` is already taken,
 #   Render serves the service under a suffixed URL instead. Read the real URLs
 #   from the dashboard, update the two literals below
-#   (`VITE_API_BASE_URL` on everest-web, `CORS_ORIGIN` on everest-api) so they
-#   name each other, and redeploy once.
+#   (`VITE_API_BASE_URL` on everest-web, `CORS_ORIGIN` on everest-api) in the
+#   dashboard so they name each other, redeploy both — and mirror the fix into
+#   this file, since a later blueprint sync resets env values to what's here.
 
 services:
   # Fastify API from apps/api/Dockerfile — prunes, builds, migrates on boot
@@ -34,13 +35,9 @@ services:
         value: "10"
       - key: CORS_ORIGIN
         value: https://everest-web.onrender.com
-        # Same runbook as the web literal: editable in the dashboard without
-        # the next blueprint apply resetting it.
-        sync: false
 
   # Static SPA from apps/web/Dockerfile — Vite bakes the API URL in at build
-  # time, so this service rebuilds if that value changes. `sync: false` keeps
-  # the value editable in the dashboard at first deploy (slug-collision
+  # time, so this service rebuilds if that value changes (slug-collision
   # runbook above).
   - type: web
     name: everest-web
@@ -51,7 +48,6 @@ services:
     envVars:
       - key: VITE_API_BASE_URL
         value: https://everest-api.onrender.com
-        sync: false
 
 databases:
   - name: everest-db
