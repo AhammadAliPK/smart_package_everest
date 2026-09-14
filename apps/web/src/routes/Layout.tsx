@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router';
+import { Link, Outlet } from 'react-router';
 import { ThemeToggle, Wordmark } from '@locker/ui';
 
 import { readStoredTheme, toggleTheme } from '../theme.js';
@@ -25,7 +25,15 @@ export function Layout() {
         Skip to content
       </a>
       <header className="mx-auto flex w-full max-w-[1100px] items-center justify-between px-margin-mobile py-4 md:px-margin-desktop">
-        <Wordmark />
+        {/* The lockup is the way home — same convention as the browser back
+            stack, one tap from anywhere. */}
+        <Link
+          to="/"
+          aria-label="Everest Lockers home"
+          className="rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          <Wordmark />
+        </Link>
         <ThemeToggle theme={theme} onToggle={() => setTheme(toggleTheme(theme))} />
       </header>
       <main id="main" className="flex-1">

@@ -98,4 +98,15 @@ describe('app shell', () => {
       '#main',
     );
   });
+
+  it('the wordmark is a link home from any route', async () => {
+    const user = userEvent.setup();
+    renderAt('/agent');
+
+    await user.click(screen.getByRole('link', { name: /everest lockers home/i }));
+
+    expect(
+      await screen.findByRole('heading', { name: /choose your door/i }),
+    ).toBeInTheDocument();
+  });
 });
