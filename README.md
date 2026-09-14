@@ -21,6 +21,7 @@ bills in tiered 24-hour days. One API, one SPA, one Postgres.
 9. [Design decisions](#design-decisions)
 10. [Assumptions, trade-offs, future work](#assumptions-trade-offs-future-work)
 11. [AI-use disclosure](#ai-use-disclosure)
+12. [Screenshots](#screenshots)
 
 ---
 
@@ -306,3 +307,29 @@ CI · the honest backlog in `_bmad-output/implementation-artifacts/deferred-work
 
 The git history is tagged per epic (`epic-1` … `epic-5`) — TDD commit order and
 story boundaries are visible in the log.
+
+---
+
+## Screenshots
+
+The live app on Render (dark theme is the default; every surface also ships a
+light theme via the header toggle) and the feature-grouped test report.
+
+**Chooser landing** — customers pick their door; deep-linkable routes:
+
+![Chooser landing](docs/screenshots/chooser.png)
+
+**Agent console** — live station state (10 s polling), tap-a-tile to prefill
+the store form, create lockers, read the next-package plan:
+
+![Agent console](docs/screenshots/agent.png)
+
+**Customer retrieval** — locker ID + 8-character pickup code, calm outcomes
+for every way a pickup can go wrong:
+
+![Customer retrieval](docs/screenshots/retrieve.png)
+
+**Test report** — `pnpm run test:report`: all 237 tests grouped by feature
+across the three suites:
+
+![Feature-grouped test report](docs/screenshots/test-report.png)
