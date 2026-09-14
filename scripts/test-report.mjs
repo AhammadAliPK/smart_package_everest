@@ -130,7 +130,11 @@ await writeFile(path.join(OUT_DIR, 'index.html'), render(report));
 const mark = totals.failed === 0 && !suites.some((s) => s.failedToRun)
   ? `all ${totals.passed} tests passing`
   : `${totals.failed} failing, ${totals.passed} passing`;
-console.log(`test-report/index.html — ${mark} — ${path.join(OUT_DIR, 'index.html')}`);
+const page = path.relative(ROOT, path.join(OUT_DIR, 'index.html'));
+console.log('');
+console.log(`  ${mark}`);
+console.log(`  report → ${page}  (static file — no server, no port)`);
+console.log(`  open   → open ${page}`);
 
 function render(report) {
   return `<!doctype html>

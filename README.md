@@ -170,9 +170,14 @@ shows test → implementation per story.
 ```bash
 npx pnpm@12.4.1 test              # everything (turbo)
 npx pnpm@12.4.1 run test:domain   # or test:api / test:web
+npx pnpm@12.4.1 run test:ui:web   # live Vitest UI (watch, re-runs on save) — or :domain / :api
 npx pnpm@12.4.1 run test:report   # feature-grouped HTML report →
                                   #   test-report/index.html (self-contained, no server)
 ```
+
+`test:ui:*` opens the Vitest web UI at `localhost:51204` — per-suite watch
+mode for development. `test:report` is the serverless one-shot: all three
+suites, feature-grouped, opens straight from disk.
 
 **Concurrency proofs** (Level 3) — the headline tests. True `Promise.all`
 fan-out against the real route stack and the real Postgres, no mocks and no
