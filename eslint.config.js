@@ -132,6 +132,10 @@ export default [
       '**/coverage/**',
       '**/.turbo/**',
       '**/__fixtures__/**',
+      // Generated test-report output (vitest --reporter=html / test-report.mjs)
+      // is minified build tooling, not source.
+      '**/.vitest/**',
+      'test-report/**',
       // Generated code (`prisma generate` output) carries its own in-file
       // disables; linting it only produces directive noise.
       '**/src/adapters/db/generated/**',

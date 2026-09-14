@@ -1,6 +1,6 @@
 # Epic 5 · Stories 5.1 + 5.2 — Production containers, Render deployment, submission README
 
-**Status:** 5.1 code done (T6 live deploy + post-commit clean-checkout proof pending) · 5.2 not started
+**Status:** DONE — 5.1 deployed live (api `everest-api-sxla`, web `everest-web-mi84`, clean-checkout proof passed) · 5.2 README shipped, disclosure verbatim, tags handed to user
 **Source:** `_bmad-output/planning-artifacts/epics.md` (Epic 5 ACs) · ARCHITECTURE-SPINE AD-8 (migrate-on-boot), AD-7 (error envelope), AD-9 v1.1 (locker ids) · `deferred-work.md` items explicitly marked "fold into Story 5.1"
 **Batch shape:** one dispatch, two stories, one verification cycle at each story boundary. Deploy itself is user-driven (their Render account) against a runbook we prepare and verify live in-session.
 
@@ -38,7 +38,7 @@ Epics 1–4 are done (227 tests green). What stands between the repo and submiss
 
 - [x] Multi-stage: pruner (`turbo prune @locker/web`) → build (`pnpm install --frozen-lockfile`, `turbo run build --filter=@locker/web` with `ARG VITE_API_BASE_URL=''` passed as build env) → runner `nginx:1.27-alpine`.
 - [x] nginx config: serve the SPA from `/usr/share/nginx/html`; `location / { try_files $uri /index.html; }` so deep links (`/retrieve`, `/agent`) return the app, never 404; gzip on for js/css/json; listen on `${PORT}` via the templates/envsubst mechanism with a default of 80.
-- [ ] `.dockerignore` additions if the web build copies junk (node_modules, dist).
+- [x] `.dockerignore` additions if the web build copies junk (node_modules, dist).
 
 **T3 — CORS on the API** (`apps/api/src/adapters/http/server.ts`, env parsing, tests)
 
@@ -59,14 +59,14 @@ Epics 1–4 are done (227 tests green). What stands between the repo and submiss
 
 **T6 — Deploy runbook + live deploy** (`_bmad-output` runbook section in this spec's Implementation Notes, executed live with the user)
 
-- [ ] Runbook steps: user pushes the branch / connects repo → Blueprint launch (creates the Postgres — clock starts) → wait first deploy → curl `https://everest-api.onrender.com/health` → open web URL → store→retrieve round trip through the deployed web UI (real browser, user's hands or mine via curl) → paste live URLs into README (5.2).
-- [ ] Live smoke recorded in this spec: health JSON, one store + retrieve with charges, timestamps. Spin-down caveat documented.
+- [x] Runbook steps: user pushes the branch / connects repo → Blueprint launch (creates the Postgres — clock starts) → wait first deploy → curl `https://everest-api.onrender.com/health` → open web URL → store→retrieve round trip through the deployed web UI (real browser, user's hands or mine via curl) → paste live URLs into README (5.2).
+- [x] Live smoke recorded in this spec: health JSON, one store + retrieve with charges, timestamps. Spin-down caveat documented.
 
 **T7 — Chores + verification (5.1 boundary)**
 
 - [x] `apps/web/src/store-package.test.tsx` fixture `clx8m2qk4` → a 6-char AD-9 id (`M4XT2B`) — last cuid-shaped string in the repo's tests.
 - [x] Check `turbo run build` emits no missing-declared-output warnings for `@locker/web` (4.x may have fixed this; if yes, tick the deferred item as already-done in `deferred-work.md`).
-- [ ] Clean-checkout compose proof: `git clone` the repo to `/tmp/everest-compose-check` → `docker compose up --build -d` → `curl :3000/health`, `curl :8080/` (index), `curl :8080/retrieve` (SPA deep link → index, not 404), one store + retrieve round trip on :3000. This is AC "verified from a clean checkout, not the dev's working tree."
+- [x] Clean-checkout compose proof: `git clone` the repo to `/tmp/everest-compose-check` → `docker compose up --build -d` → `curl :3000/health`, `curl :8080/` (index), `curl :8080/retrieve` (SPA deep link → index, not 404), one store + retrieve round trip on :3000. This is AC "verified from a clean checkout, not the dev's working tree."
 - [x] Full pipeline at boundary: `npx pnpm@12.4.1 turbo run build test lint` (one run, green).
 - [x] Update `deferred-work.md`: mark the container-ops bundle + Dockerfile-pinning items absorbed by 5.1 (with what was actually done).
 
@@ -89,48 +89,48 @@ Root `README.md` (NEW — none exists). Written for two readers at once: an HR r
 
 **T1 — README skeleton + run instructions (must be real commands, tested)**
 
-- [ ] What it is: 4–5 lines, the product in one paragraph (smart-package locker station, agent console + customer retrieval, storage charges).
-- [ ] **Live demo** URLs (filled from 5.1 deploy; spin-down expectation + cold-start note).
-- [ ] **Run locally**: (a) full stack via compose from a fresh clone (`docker compose up --build`, app at :8080, API :3000); (b) dev mode (postgres-only compose service, `npx pnpm@12.4.1 install`, migrate, `--filter @locker/api dev` + `--filter @locker/web dev`); (c) OpenAPI docs URL (`/docs`); (d) **Level-3/4 concurrency proof**: start the DB, `npx pnpm@12.4.1 --filter @locker/api test` — name the two suites (`concurrency-parallel-store`, `concurrency-mixed`) and what they prove (no double-assign under parallel stores; availability stays correct under sustained mixed load).
-- [ ] Repo tour: `docs/` = product source (PRD, DESIGN, EXPERIENCE, challenge brief), `_bmad/` + `_bmad-output/` = planning/build method artifacts (specs per epic, decision log in the spine), `apps/` + `packages/` = the code.
+- [x] What it is: 4–5 lines, the product in one paragraph (smart-package locker station, agent console + customer retrieval, storage charges).
+- [x] **Live demo** URLs (filled from 5.1 deploy; spin-down expectation + cold-start note).
+- [x] **Run locally**: (a) full stack via compose from a fresh clone (`docker compose up --build`, app at :8080, API :3000); (b) dev mode (postgres-only compose service, `npx pnpm@12.4.1 install`, migrate, `--filter @locker/api dev` + `--filter @locker/web dev`); (c) OpenAPI docs URL (`/docs`); (d) **Level-3/4 concurrency proof**: start the DB, `npx pnpm@12.4.1 --filter @locker/api test` — name the two suites (`concurrency-parallel-store`, `concurrency-mixed`) and what they prove (no double-assign under parallel stores; availability stays correct under sustained mixed load).
+- [x] Repo tour: `docs/` = product source (PRD, DESIGN, EXPERIENCE, challenge brief), `_bmad/` + `_bmad-output/` = planning/build method artifacts (specs per epic, decision log in the spine), `apps/` + `packages/` = the code.
 
 **T2 — Approach, level by level**
 
-- [ ] How the challenge was attacked: Level 1 (allocation = smallest-fitting via `SIZE_RANK`, transactional store), Level 2 (distinct side-effect-free refusal outcomes + tiered storage charges as pure domain policy), Level 3 (row-level locking + CAS so parallel stores never double-assign — link to the suites), Level 4 (SPA that computes nothing, renders API outcomes verbatim). One short paragraph each, linking to the code entry points.
+- [x] How the challenge was attacked: Level 1 (allocation = smallest-fitting via `SIZE_RANK`, transactional store), Level 2 (distinct side-effect-free refusal outcomes + tiered storage charges as pure domain policy), Level 3 (row-level locking + CAS so parallel stores never double-assign — link to the suites), Level 4 (SPA that computes nothing, renders API outcomes verbatim). One short paragraph each, linking to the code entry points.
 
 **T3 — Design decisions, each with its why**
 
-- [ ] Hexagonal architecture + AD-2 boundary enforcement (why: use cases stay framework-free, proven by lint).
-- [ ] The allocation transaction (SELECT … FOR UPDATE ordered candidate scan + CAS flip) — why not naive check-then-write.
-- [ ] AD-7 error envelope (one shape, calm codes; UI never shows raw errors).
-- [ ] AD-9 v1.1 human locker ids — including the honest story: v1 used a cuid, the build renegotiated it mid-flight to a generated 6-char unambiguous id **as the primary key**; collision retry bounded at 3.
-- [ ] AD-6 pickup codes: 8-char unambiguous alphabet, possession = retrieval, codes stored plaintext (assumption, listed as such).
-- [ ] AD-8 migrate-on-boot (never serve an unmigrated schema).
-- [ ] AD-10 SPA-computes-nothing (charges come from the API; the client never does pricing math).
-- [ ] Testing: 227 tests, TDD order visible in history, contract-first TypeBox schemas generating both OpenAPI and the web's typed client, design-audit tests enforcing DESIGN.md tokens.
+- [x] Hexagonal architecture + AD-2 boundary enforcement (why: use cases stay framework-free, proven by lint).
+- [x] The allocation transaction (SELECT … FOR UPDATE ordered candidate scan + CAS flip) — why not naive check-then-write.
+- [x] AD-7 error envelope (one shape, calm codes; UI never shows raw errors).
+- [x] AD-9 v1.1 human locker ids — including the honest story: v1 used a cuid, the build renegotiated it mid-flight to a generated 6-char unambiguous id **as the primary key**; collision retry bounded at 3.
+- [x] AD-6 pickup codes: 8-char unambiguous alphabet, possession = retrieval, codes stored plaintext (assumption, listed as such).
+- [x] AD-8 migrate-on-boot (never serve an unmigrated schema).
+- [x] AD-10 SPA-computes-nothing (charges come from the API; the client never does pricing math).
+- [x] Testing: 227 tests, TDD order visible in history, contract-first TypeBox schemas generating both OpenAPI and the web's typed client, design-audit tests enforcing DESIGN.md tokens.
 
 **T4 — Assumptions, trade-offs, future improvements**
 
-- [ ] Assumptions: single station; anonymous customers (possession-based retrieval, `customerRef` optional free-text); plaintext pickup codes; storage day = 24h elapsed, ceil, partial day bills full; `STORAGE_FEE_BASE` in whole units defaulting to 10; SMS/email code delivery out of scope.
-- [ ] Trade-offs (pick the real ones): runtime image simplicity vs size (per T1 outcome); polling vs push for availability; id-as-PK collision retry vs surrogate-key simplicity; plaintext codes vs hashing (single-station threat model); Postgres row locks vs app-level lock manager; free-tier Render (spin-down) vs paid always-on.
-- [ ] Future improvements: multi-station, hashed pickup codes, notifications, agent auth, CI + the deferred hardening list (link `deferred-work.md`).
+- [x] Assumptions: single station; anonymous customers (possession-based retrieval, `customerRef` optional free-text); plaintext pickup codes; storage day = 24h elapsed, ceil, partial day bills full; `STORAGE_FEE_BASE` in whole units defaulting to 10; SMS/email code delivery out of scope.
+- [x] Trade-offs (pick the real ones): runtime image simplicity vs size (per T1 outcome); polling vs push for availability; id-as-PK collision retry vs surrogate-key simplicity; plaintext codes vs hashing (single-station threat model); Postgres row locks vs app-level lock manager; free-tier Render (spin-down) vs paid always-on.
+- [x] Future improvements: multi-station, hashed pickup codes, notifications, agent auth, CI + the deferred hardening list (link `deferred-work.md`).
 
 **T5 — AI-use disclosure (graded requirement — answer all four verbatim)**
 
-- [ ] Which AI tools: Claude Code (CLI), powered by GLM (Z.ai), plus the BMAD method's planning prompts.
-- [ ] How they were used: planning pipeline (PRD → architecture spine → epics → specs) then per-story implementation with tests, against user-frozen specs.
-- [ ] Which portions are AI-assisted: the overwhelming majority of code and test text was AI-drafted under human direction; **all** product decisions, priorities, and mid-build renegotiations (AD-9 v1.1) were the author's; the author reviewed every diff and made every commit personally.
-- [ ] Prompts/workflow: BMAD pipeline artifacts in `_bmad-output/` (specs are the standing instructions per epic), per-story approve→build→verify loop, human review points at spec freeze and manual smoke. Honest paragraph, no hedging.
+- [x] Which AI tools: Claude Code (CLI), powered by GLM (Z.ai), plus the BMAD method's planning prompts.
+- [x] How they were used: planning pipeline (PRD → architecture spine → epics → specs) then per-story implementation with tests, against user-frozen specs.
+- [x] Which portions are AI-assisted: the overwhelming majority of code and test text was AI-drafted under human direction; **all** product decisions, priorities, and mid-build renegotiations (AD-9 v1.1) were the author's; the author reviewed every diff and made every commit personally.
+- [x] Prompts/workflow: BMAD pipeline artifacts in `_bmad-output/` (specs are the standing instructions per epic), per-story approve→build→verify loop, human review points at spec freeze and manual smoke. Honest paragraph, no hedging.
 
 **T6 — Git tags chore (graded history criterion: "tagged per epic")**
 
-- [ ] Tag the epic-boundary commits: resolve each epic's last code/story commit from `git log` (epic-1 ≈ the story-1.5 close sequence, epic-2/3 ≈ `c1fd5a9` boundary, epic-4 ≈ last 4.7/AD-9 code commit, epic-5 = final). Tag names: `epic-1` … `epic-5`. Hand the user one paste-able command block; tags are theirs to push (`git push origin --tags`).
+- [x] Tag the epic-boundary commits: resolve each epic's last code/story commit from `git log` (epic-1 ≈ the story-1.5 close sequence, epic-2/3 ≈ `c1fd5a9` boundary, epic-4 ≈ last 4.7/AD-9 code commit, epic-5 = final). Tag names: `epic-1` … `epic-5`. Hand the user one paste-able command block; tags are theirs to push (`git push origin --tags`).
 
 **T7 — Close-out**
 
-- [ ] `sprint-status.yaml`: epic-5 + both stories → done; project complete.
-- [ ] `BUILD-HANDOFF.md`: final state (everything done, live URLs, what remains = deferred-work.md only).
-- [ ] Final full pipeline run + spec status → done, Implementation Notes appended.
+- [x] `sprint-status.yaml`: epic-5 + both stories → done; project complete.
+- [x] `BUILD-HANDOFF.md`: final state (everything done, live URLs, what remains = deferred-work.md only).
+- [x] Final full pipeline run + spec status → done, Implementation Notes appended.
 
 ### 5.2 acceptance mapping
 

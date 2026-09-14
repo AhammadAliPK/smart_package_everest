@@ -64,7 +64,7 @@ development_status:
   4-7-hardening-pass-full-state-matrix-accessibility-responsivenes: done
   epic-4-retrospective: optional
 
-  epic-5: in-progress
+  epic-5: done
   5-1-production-containers-and-render-deployment: done
-  5-2-readme-with-approach-decisions-and-ai-use-disclosure: in-progress
+  5-2-readme-with-approach-decisions-and-ai-use-disclosure: done
   epic-5-retrospective: optional

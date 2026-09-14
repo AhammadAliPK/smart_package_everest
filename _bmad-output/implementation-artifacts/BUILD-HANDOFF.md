@@ -1,6 +1,6 @@
 # Build Handoff — read this first in any new session
 
-Single source of truth for where the Everest build stands. Updated 2026-09-14 ~19:45 (T6 LIVE: everest-api-sxla + everest-web-mi84 on Render, production smoke green, 5.1 done; only 5.2 README + tags left).
+Single source of truth for where the Everest build stands. Updated 2026-09-14 ~20:30 — **PROJECT COMPLETE: Epics 1–5 done.** Live at everest-api-sxla / everest-web-mi84 (Render, free tier). README shipped with disclosure; epic tags handed to the user. What remains is `deferred-work.md` only.
 
 ## Process rules (user-set, non-negotiable)
 
