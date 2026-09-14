@@ -29,5 +29,7 @@ pnpm-debug.log*
 
 # vitest HTML/UI reports (throwaway output of --reporter=html / --ui)
 .vitest/
+# vitest UI auth token (per-project, generated on first --ui run)
+.vitest-secret-token
 # feature-grouped test report (pnpm run test:report)
 test-report/
