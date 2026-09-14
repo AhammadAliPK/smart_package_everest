@@ -94,11 +94,16 @@ describe('customer retrieval', () => {
     expect(fifth.parentElement).toBe(eighth.parentElement);
     expect(first.parentElement).not.toBe(fifth.parentElement);
 
-    // The display dash joins the chunks wide, hides when they stack.
+    // The display dash joins the chunks wide, hides when they stack. The
+    // threshold is a container query on the control itself: one row needs
+    // ~437px (44px cell floors + gaps + dash) and cannot shrink, so the
+    // chunks join only when the CodeInput is ≥ 28rem — never on viewport
+    // width alone, which left ~3px of headroom and let the 8th cell
+    // overflow the column.
     const dash = screen.getByText('–');
     expect(dash).toHaveAttribute('aria-hidden', 'true');
     expect(dash.className).toContain('hidden');
-    expect(dash.className).toContain('min-[480px]:block');
+    expect(dash.className).toContain('@min-[28rem]:block');
   });
 
   it('uppercases the locker id as the customer types', async () => {

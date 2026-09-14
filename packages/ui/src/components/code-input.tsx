@@ -1,9 +1,9 @@
 /**
  * CodeInput (EXPERIENCE.md component patterns) — the 8 pickup-code cells.
  *
- * `XXXX-XXXX` with a display-only dash — two real chunks, so below 480px
- * they stack 4-over-4 instead of ragged-wrapping mid-chunk. Auto-advance,
- * auto-uppercase,
+ * `XXXX-XXXX` with a display-only dash — two real chunks, so a control
+ * narrower than 28rem stacks 4-over-4 instead of ragged-wrapping
+ * mid-chunk. Auto-advance, auto-uppercase,
  * paste-tolerant: a pasted 8-char string fills every cell. The alphabet
  * excludes `0/O/1/I` — typing one is rejected with a gentle inline hint
  * (announced politely), never an error state. Cells are thumb-sized
@@ -181,17 +181,15 @@ export function CodeInput({
   };
 
   return (
-    <div className={className}>
+    <div className={cn('@container', className)}>
       {/* DESIGN.md: "chunked `XXXX-XXXX`" — two real chunks, never a ragged
-          flex-wrap. Cells flex within a band — floored at the 44px
-          touch-target minimum, capped at 56px so they never balloon on a
-          wide card — and each chunk centers, so the control composes
-          cleanly at every section width and cannot overflow it. ≥480px: one
-          row, chunks joined by the display dash. Below that the chunks
-          stack 4-over-4 (eight cells can't clear the 44px floor in a phone
-          column); the between-chunks dash hides when they stack. */}
-      <div className="flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-center">
-        <div className="flex flex-1 justify-center gap-2">
+          flex-wrap. One row needs ~437px (8 × 44px floors + gaps + dash), so
+          the chunks join on a CONTAINER query at ≥ 28rem and stack 4-over-4
+          below it (the dash hides when stacked). `min-w-0` matters: a chunk's
+          automatic flex minimum would floor it at 248px (input intrinsic
+          width clamped by the cell cap) and overflow the column. */}
+      <div className="flex flex-col gap-2 @min-[28rem]:flex-row @min-[28rem]:items-center">
+        <div className="flex min-w-0 flex-1 justify-center gap-2">
           {Array.from({ length: LENGTH / 2 }, (_, offset) => (
             <Cell
               key={offset}
@@ -211,11 +209,11 @@ export function CodeInput({
         </div>
         <span
           aria-hidden="true"
-          className="hidden px-1 font-mono text-[22px] text-muted-foreground min-[480px]:block"
+          className="hidden px-1 font-mono text-[22px] text-muted-foreground @min-[28rem]:block"
         >
           –
         </span>
-        <div className="flex flex-1 justify-center gap-2">
+        <div className="flex min-w-0 flex-1 justify-center gap-2">
           {Array.from({ length: LENGTH / 2 }, (_, offset) => (
             <Cell
               key={offset}
