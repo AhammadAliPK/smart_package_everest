@@ -269,10 +269,19 @@ confirmation — computed server-side only.
 
 ## Assumptions, trade-offs, future work
 
+**Out of scope** (PRD §7 — deliberate cuts, not gaps):
+
+- **Customer notification delivery** — no SMS/email of pickup codes; the
+  agent's store receipt (one-tap copy per value) is the handoff point
+- **Authentication / authorization** — agents and customers are anonymous;
+  possession of the pickup code *is* the retrieval credential
+- **Physical locker hardware** — "opening" a locker is a logical state change
+- **Multi-station topology** — one station; the domain model doesn't preclude
+  extension
+
 **Assumptions:** single station · anonymous customers (possession-based
 retrieval, optional free-text `customerRef`) · plaintext pickup codes · a
-storage day is 24 h elapsed, ceil'd, partial day bills full · whole-unit fees ·
-no SMS/email delivery.
+storage day is 24 h elapsed, ceil'd, partial day bills full · whole-unit fees.
 
 **Trade-offs:** runner-image simplicity over size (slim-down attempted; the two
 cold-build fixes cost more than the saved layer — recorded in the 5.1 spec) ·
