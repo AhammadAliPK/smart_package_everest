@@ -11,6 +11,10 @@
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
+    "test:domain": "turbo run test --filter=@locker/domain",
+    "test:api": "turbo run test --filter=@locker/api",
+    "test:web": "turbo run test --filter=@locker/web",
+    "test:report": "node scripts/test-report.mjs",
     "lint": "turbo run lint",
     "dev": "turbo run dev",
     "db:migrate": "turbo run db:migrate",
@@ -21,6 +25,7 @@
     "@babel/eslint-parser": "8.0.5",
     "@babel/plugin-syntax-jsx": "8.0.1",
     "@babel/plugin-syntax-typescript": "8.0.3",
+    "@vitest/ui": "5.0.0",
     "eslint": "10.10.0",
     "turbo": "2.10.12"
   }

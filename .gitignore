@@ -26,3 +26,8 @@ out/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# vitest HTML/UI reports (throwaway output of --reporter=html / --ui)
+.vitest/
+# feature-grouped test report (pnpm run test:report)
+test-report/
