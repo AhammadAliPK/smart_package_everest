@@ -4,7 +4,7 @@ A smart-package locker station. Delivery agents drop packages into the smallest
 fitting locker; customers pick them up with a **locker ID + pickup code**; storage
 bills in tiered 24-hour days. One API, one SPA, one Postgres.
 
-`Node 24` · `pnpm 12.4.1` · `TypeScript 5.9` · `236 tests` · `live on Render`
+`Node 24` · `pnpm 12.4.1` · `TypeScript 5.9` · `237 tests` · `live on Render`
 
 ---
 
@@ -164,7 +164,7 @@ npx pnpm@12.4.1 --filter @locker/web dev   # Vite :5173 (same-origin proxy)
 
 ## Testing
 
-**236 tests** — domain 41 · api 113 · web 82. TDD throughout: commit order
+**237 tests** — domain 41 · api 113 · web 83. TDD throughout: commit order
 shows test → implementation per story.
 
 ```bash
@@ -174,10 +174,21 @@ npx pnpm@12.4.1 run test:report   # feature-grouped HTML report →
                                   #   test-report/index.html (self-contained, no server)
 ```
 
-The **concurrency proofs** (Level 3) live in the API suite:
+**Concurrency proofs** (Level 3) — the headline tests. True `Promise.all`
+fan-out against the real route stack and the real Postgres, no mocks and no
+artificial serialization:
 
-- `concurrency-parallel-store` — parallel stores never double-assign a locker
-- `concurrency-mixed` — availability stays correct under sustained mixed store/retrieve load
+| Suite | Race | Proven outcome |
+|---|---|---|
+| `concurrency-parallel-store` | 8 parallel stores → 3 free lockers | Exactly 3 distinct 201s + 5 `NO_SUITABLE_LOCKER`; the 3 winners hold *distinct* lockers, losers write nothing |
+| `concurrency-parallel-store` | 2 LARGE stores → only 1 fitting locker | Exactly one winner — concurrent stores of the same locker never double-assign |
+| `concurrency-parallel-store` | 6 parallel stores → 6 lockers | Row-level check: every occupied locker holds a distinct STORED package |
+| `concurrency-mixed` | 6 rounds × parallel stores + retrievals | `occupied == STORED` asserted **in the DB** every half-round; freed lockers re-fill the next round |
+| `concurrency-mixed` | 2 parallel pickups of the same package | One 200 + one 409 `LOCKER_EMPTY`; exactly one RETRIEVED row |
+
+The mechanism under test: the store transaction scans free candidates with
+`SELECT … FOR UPDATE SKIP LOCKED` and CAS-flips `occupied` — parallel stores
+serialize on row locks instead of racing check-then-write.
 
 Also notable: design-audit tests read the *shipped* CSS and enforce DESIGN.md
 tokens, so the UI can't silently drift from the design system.
