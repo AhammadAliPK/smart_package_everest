@@ -34,7 +34,7 @@ services:
       - key: STORAGE_FEE_BASE
         value: "10"
       - key: CORS_ORIGIN
-        value: https://everest-web.onrender.com
+        value: https://everest-web-mi84.onrender.com
 
   # Static SPA from apps/web/Dockerfile — Vite bakes the API URL in at build
   # time, so this service rebuilds if that value changes (slug-collision
@@ -47,7 +47,7 @@ services:
     dockerfilePath: apps/web/Dockerfile
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://everest-api.onrender.com
+        value: https://everest-api-sxla.onrender.com
 
 databases:
   - name: everest-db
