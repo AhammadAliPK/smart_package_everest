@@ -2,8 +2,9 @@
  * Locker id contract (AD-9 v1.1): the identifier a human types is 6
  * characters from the same unambiguous alphabet as pickup codes — `0/O` and
  * `1/I` are excluded so a customer can never misread a locker id one-handed.
- * The cuid stays the internal surrogate key; this generated id is what
- * `lockerId` means in every payload. Generation is pure over the same
+ * The generated id IS the primary key (AD-9 v1.1) — no surrogate key, no
+ * second column — and is what `lockerId` means in every payload.
+ * Generation is pure over the same
  * injectable byte source as pickup codes (AD-6 idiom), so the randomness
  * lives in the adapter while this rule stays testable.
  */
