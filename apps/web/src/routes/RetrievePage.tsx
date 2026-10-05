@@ -9,9 +9,11 @@ import {
   Eyebrow,
   Input,
   Spinner,
+  StorageRates,
 } from '@locker/ui';
 
 import { api, type ApiError, type PickupReply } from '../api/client.js';
+import { usePricing } from '../hooks/use-pricing.js';
 import { usePageTitleFocus } from './usePageFocus.js';
 
 /** Never mutated in place — cells are always rebuilt via spread. */
@@ -27,6 +29,7 @@ const EMPTY_CODE: string[] = ['', '', '', '', '', '', '', ''];
 export function RetrievePage() {
   const titleRef = usePageTitleFocus<HTMLHeadingElement>();
   const confirmRef = useRef<HTMLDivElement>(null);
+  const { pricing } = usePricing();
 
   const [lockerId, setLockerId] = useState('');
   const [code, setCode] = useState<string[]>(EMPTY_CODE);
@@ -196,6 +199,17 @@ export function RetrievePage() {
               'Open my locker'
             )}
           </Button>
+
+          {/* Rates before money exists: what a stay costs while the customer
+              is still typing. The actual charge lands in the ChargeSummary
+              after retrieval — verbatim from the API either way (AD-10). */}
+          {pricing ? (
+            <StorageRates
+              className="mt-6"
+              baseFee={pricing.baseFee}
+              tiers={pricing.tiers}
+            />
+          ) : null}
         </form>
       )}
     </section>

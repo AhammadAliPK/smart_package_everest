@@ -156,9 +156,9 @@ describe('customer retrieval', () => {
 
     // The ledger, number for number.
     expect(screen.getByText('Storage charge · 12 days')).toBeInTheDocument();
-    expect(screen.getByText('Days 1–5 × 10')).toBeInTheDocument();
-    expect(screen.getByText('Days 6–10 × 20')).toBeInTheDocument();
-    expect(screen.getByText('Days 11–12 × 30')).toBeInTheDocument();
+    expect(screen.getByText('Days 1–5 @ 10 / day')).toBeInTheDocument();
+    expect(screen.getByText('Days 6–10 @ 20 / day')).toBeInTheDocument();
+    expect(screen.getByText('Days 11–12 @ 30 / day')).toBeInTheDocument();
     expect(screen.getByText('210 units')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /open my locker/i })).not.toBeInTheDocument();
   });
@@ -216,12 +216,12 @@ describe('customer retrieval', () => {
     expect(screen.getByLabelText('code character 8')).toHaveValue('M');
   });
 
-  it('shows only the tiers actually used', async () => {
+  it('shows only the tiers actually used — a one-day stay reads as a single Day row', async () => {
     retrievePackage.mockResolvedValue({
       ...retrieved,
-      storageCharge: 30,
-      daysCharged: 3,
-      breakdown: [{ tier: 1, days: 3, rate: 10, amount: 30 }],
+      storageCharge: 10,
+      daysCharged: 1,
+      breakdown: [{ tier: 1, days: 1, rate: 10, amount: 10 }],
     });
     render(<RetrievePage />);
     const user = userEvent.setup();
@@ -230,11 +230,12 @@ describe('customer retrieval', () => {
     await user.click(screen.getByRole('button', { name: /open my locker/i }));
 
     await screen.findByText(/locker K7Q4M2 is open\./i);
-    expect(screen.getByText('Storage charge · 3 days')).toBeInTheDocument();
-    expect(screen.getByText('Days 1–3 × 10')).toBeInTheDocument();
+    expect(screen.getByText('Storage charge · 1 day')).toBeInTheDocument();
+    // Singular "Day 1" (never "Days 1–1"), rate stated as a price.
+    expect(screen.getByText('Day 1 @ 10 / day')).toBeInTheDocument();
     expect(screen.queryByText(/days 6–10/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/day 11/i)).not.toBeInTheDocument();
-    expect(screen.getByText('30 units')).toBeInTheDocument();
+    expect(screen.getByText('10 units')).toBeInTheDocument();
   });
 
   it('"Retrieve another" returns to a fresh form', async () => {

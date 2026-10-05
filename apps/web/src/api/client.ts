@@ -21,6 +21,7 @@ export type LockerListItem = LockersReply['lockers'][number];
 export type CreateLockerReply = Reply<'/lockers', 'post', 201>;
 export type StorePackageReply = Reply<'/packages', 'post', 201>;
 export type PickupReply = Reply<'/pickups', 'post', 200>;
+export type PricingReply = Reply<'/pricing', 'get', 200>;
 
 /** The AD-7 error envelope, as the API shapes it. */
 export interface ApiErrorEnvelope {
@@ -86,6 +87,7 @@ export const api = {
     request('post', '/packages', payload) as Promise<StorePackageReply>,
   retrievePackage: (payload: { lockerId: string; pickupCode: string }) =>
     request('post', '/pickups', payload) as Promise<PickupReply>,
+  getPricing: () => request('get', '/pricing') as Promise<PricingReply>,
 };
 
 /** The declared sizes, as the API's schema spells them. */

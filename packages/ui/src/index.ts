@@ -33,6 +33,11 @@ export { Spinner } from './components/spinner.js';
 export { LockerTile, type LockerTileProps } from './components/locker-tile.js';
 export { EmptyState, type EmptyStateProps } from './components/empty-state.js';
 export { ResultCard, type ResultCardProps } from './components/result-card.js';
+export {
+  StorageRates,
+  type PricingTierDisplayRow,
+  type StorageRatesProps,
+} from './components/storage-rates.js';
 export { CodeInput, type CodeInputProps } from './components/code-input.js';
 export {
   ChargeSummary,

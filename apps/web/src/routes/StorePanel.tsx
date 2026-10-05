@@ -12,9 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
   Spinner,
+  StorageRates,
 } from '@locker/ui';
 
 import { api, type ApiError, type LockerSizeValue, type StorePackageReply } from '../api/client.js';
+import { usePricing } from '../hooks/use-pricing.js';
 
 export interface StorePanelProps {
   /**
@@ -36,6 +38,7 @@ const SIZES: readonly LockerSizeValue[] = ['SMALL', 'MEDIUM', 'LARGE'];
  * everything the agent typed. Outcomes arrive from the API verbatim (AD-10).
  */
 export function StorePanel({ prefill, onStored }: StorePanelProps) {
+  const { pricing } = usePricing();
   const [size, setSize] = useState<LockerSizeValue | null>(null);
   const [tappedLockerId, setTappedLockerId] = useState<string | null>(null);
   const [customerRef, setCustomerRef] = useState('');
@@ -198,6 +201,18 @@ export function StorePanel({ prefill, onStored }: StorePanelProps) {
           </div>
         </form>
       </div>
+
+      {/* What a stay costs, stated at every money-adjacent moment: while
+          the agent fills the form and after the ResultCard lands above it.
+          The rate card is the API's verbatim (AD-10); the actual charge is
+          priced at retrieval. */}
+      {pricing ? (
+        <StorageRates
+          className="mt-4"
+          baseFee={pricing.baseFee}
+          tiers={pricing.tiers}
+        />
+      ) : null}
     </section>
   );
 }

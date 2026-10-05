@@ -4,7 +4,7 @@ A smart-package locker station. Delivery agents drop packages into the smallest
 fitting locker; customers pick them up with a **locker ID + pickup code**; storage
 bills in tiered 24-hour days. One API, one SPA, one Postgres.
 
-`Node 24` · `pnpm 12.4.1` · `TypeScript 5.9` · `237 tests` · `live on Render`
+`Node 24` · `pnpm 12.4.1` · `TypeScript 5.9` · `249 tests` · `live on Render`
 
 ---
 
@@ -52,7 +52,7 @@ trial runs through ~2026-10-14.
 | @fastify/cors | 11.3.0 | Cross-origin for the deployed SPA; registered only when `CORS_ORIGIN` is set |
 | Prisma + @prisma/adapter-pg | 7.10.0 | Schema, migrations, driver adapter over **PostgreSQL 18** |
 | dotenv | 17.4.2 | Env loading (boot + tests) |
-| tsx · Vitest | — | Dev runner · 113 tests |
+| tsx · Vitest | — | Dev runner · 117 tests |
 
 **Web — `apps/web` (`@locker/web`)**
 
@@ -64,7 +64,7 @@ trial runs through ~2026-10-14.
 | Tailwind CSS | 4.3.3 | `@theme` token system from DESIGN.md |
 | openapi-typescript | 7.13.0 | **Typed API client generated from the API's real OpenAPI** |
 | @fontsource | — | DM Serif Display (display) + Inter Variable (text) |
-| Testing Library · jsdom · Vitest | — | 82 component tests |
+| Testing Library · jsdom · Vitest | — | 87 component tests |
 
 *TypeScript is pinned to 5.9.3 in `apps/web` only — openapi-typescript needs the
 JS compiler API that TS7 native drops.*
@@ -165,7 +165,7 @@ npx pnpm@12.4.1 --filter @locker/web dev   # Vite :5173 (same-origin proxy)
 
 ## Testing
 
-**237 tests** — domain 41 · api 113 · web 83. TDD throughout: commit order
+**249 tests** — domain 45 · api 117 · web 87. TDD throughout: commit order
 shows test → implementation per story.
 
 ```bash
@@ -210,6 +210,7 @@ tokens, so the UI can't silently drift from the design system.
 | `GET /lockers` | Availability list, ordered by id | — |
 | `POST /packages` | Store into the smallest fitting locker → `lockerId` + `pickupCode` | `NO_SUITABLE_LOCKER` 409 |
 | `POST /pickups` | Retrieve with id + code → charge ledger | see below |
+| `GET /pricing` | Storage rate card — base fee + tier schedule, served verbatim to the UI | — |
 
 Every error is one envelope (AD-7): `{"error":{"code","message"}}` — calm codes,
 mapped in exactly one place, and the UI never shows raw errors.
@@ -338,7 +339,7 @@ for every way a pickup can go wrong:
 
 ![Customer retrieval](docs/screenshots/retrieve.png)
 
-**Test report** — `pnpm run test:report`: all 237 tests grouped by feature
+**Test report** — `pnpm run test:report`: all 249 tests grouped by feature
 across the three suites:
 
 ![Feature-grouped test report](docs/screenshots/test-report.png)

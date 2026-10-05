@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { StoragePricingPolicy } from '../src/storage-pricing.js';
+import { PRICING_TIERS, StoragePricingPolicy } from '../src/storage-pricing.js';
 
 /**
  * Table-driven tests for the tiered storage charge (FR9, AD-5).
@@ -159,5 +159,52 @@ describe('StoragePricingPolicy.charge', () => {
     const b = StoragePricingPolicy.charge(shifted, at(999 * DAY + 6 * DAY), 10);
 
     expect(b).toEqual(a);
+  });
+});
+
+describe('PRICING_TIERS (the published rate card)', () => {
+  it('covers days 1 to infinity with no gaps or overlaps', () => {
+    expect(PRICING_TIERS.map((row) => [row.fromDay, row.toDay])).toEqual([
+      [1, 5],
+      [6, 10],
+      [11, null],
+    ]);
+
+    // Each tier starts exactly one day after its predecessor ends, and only
+    // the last tier may be open-ended.
+    for (let i = 1; i < PRICING_TIERS.length; i += 1) {
+      expect(PRICING_TIERS[i]!.fromDay).toBe(
+        PRICING_TIERS[i - 1]!.toDay! + 1,
+      );
+    }
+    expect(PRICING_TIERS.at(-1)!.toDay).toBeNull();
+  });
+
+  it('escalates the multiplier per tier', () => {
+    expect(PRICING_TIERS.map((row) => row.multiplier)).toEqual([1, 2, 3]);
+  });
+
+  it('cannot drift from what the policy charges (schedule ↔ breakdown)', () => {
+    // A stay long enough to touch every tier: the per-day rate the schedule
+    // publishes for each day must equal the rate the charge breakdown bills.
+    const baseFee = 10;
+    const charge = StoragePricingPolicy.charge(
+      STORED_AT,
+      at(PRICING_TIERS.at(-1)!.fromDay * DAY),
+      baseFee,
+    );
+
+    expect(charge.breakdown.map((row) => row.rate)).toEqual(
+      PRICING_TIERS.map((row) => row.multiplier * baseFee),
+    );
+    // The days each mechanism attributes to a tier agree too.
+    expect(charge.breakdown.map((row) => row.days)).toEqual([5, 5, 1]);
+  });
+
+  it('is frozen — the schedule is not editable at runtime', () => {
+    expect(Object.isFrozen(PRICING_TIERS)).toBe(true);
+    for (const row of PRICING_TIERS) {
+      expect(Object.isFrozen(row)).toBe(true);
+    }
   });
 });

@@ -22,6 +22,45 @@ const DAY_MS = 86_400_000;
 const TIER_1_MAX_DAYS = 5;
 const TIER_2_MAX_DAYS = 10;
 
+/** One tier of the published schedule (what `GET /pricing` serves). */
+export interface PricingTierRow {
+  /** 1, 2 or 3 — ascending with the stay length. */
+  readonly tier: 1 | 2 | 3;
+  /** First day this tier covers (inclusive). */
+  readonly fromDay: number;
+  /** Last day this tier covers; `null` = open-ended (the final tier). */
+  readonly toDay: number | null;
+  /** Per-day rate as a multiple of the base fee: 1, 2 or 3. */
+  readonly multiplier: number;
+}
+
+/**
+ * The published pricing schedule — the same tier boundaries `charge` prices
+ * by, derived from the constants above so the served rate card can never
+ * drift from the math (FR9, AD-5). Callers multiply `multiplier` by the
+ * operator's base fee; the UI renders the result verbatim (AD-10).
+ */
+export const PRICING_TIERS: readonly PricingTierRow[] = Object.freeze([
+  Object.freeze({
+    tier: 1,
+    fromDay: 1,
+    toDay: TIER_1_MAX_DAYS,
+    multiplier: 1,
+  }),
+  Object.freeze({
+    tier: 2,
+    fromDay: TIER_1_MAX_DAYS + 1,
+    toDay: TIER_2_MAX_DAYS,
+    multiplier: 2,
+  }),
+  Object.freeze({
+    tier: 3,
+    fromDay: TIER_2_MAX_DAYS + 1,
+    toDay: null,
+    multiplier: 3,
+  }),
+] as const satisfies readonly PricingTierRow[]);
+
 /** One tier segment of a stay: `amount === days * rate` always. */
 export interface ChargeBreakdownRow {
   /** 1, 2 or 3 — ascending with the stay length. */

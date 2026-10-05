@@ -51,7 +51,10 @@ export function ChargeSummary({
             className="flex justify-between border-b border-border py-2.5 font-sans text-[15px] text-foreground"
           >
             <span>
-              Days {start}–{end} × {row.rate}
+              {row.days === 1
+                ? `Day ${start}`
+                : `Days ${start}–${end}`}{' '}
+              @ {row.rate} / day
             </span>
             <span className="tabular-nums">{row.amount}</span>
           </div>

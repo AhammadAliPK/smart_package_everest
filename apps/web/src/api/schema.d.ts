@@ -216,6 +216,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/pricing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description STORAGE_FEE_BASE — the tier-1 per-day rate (default 10). */
+                            baseFee: number;
+                            tiers: {
+                                /** @description The tier — ascending with the stay length. */
+                                tier: number;
+                                /** @description First day this tier covers (inclusive). */
+                                fromDay: number;
+                                /** @description Last day this tier covers, or null for the final tier. */
+                                toDay: number | null;
+                                /** @description Per-day rate in integer units (AD-5). */
+                                perDay: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

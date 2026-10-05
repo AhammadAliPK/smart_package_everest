@@ -15,6 +15,7 @@ import { healthRoutes } from './routes/health.js';
 import { lockerRoutes } from './routes/lockers.js';
 import { packageRoutes } from './routes/packages.js';
 import { pickupRoutes } from './routes/pickups.js';
+import { pricingRoutes } from './routes/pricing.js';
 
 /** Options for {@link buildApp}. */
 export interface BuildAppOptions {
@@ -86,6 +87,7 @@ export async function buildApp(
     packageRepository,
     storageFeeBase: env.storageFeeBase,
   });
+  await app.register(pricingRoutes, { storageFeeBase: env.storageFeeBase });
 
   return app;
 }
