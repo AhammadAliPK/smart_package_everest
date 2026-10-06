@@ -2,9 +2,10 @@
  * StorageRates (EXPERIENCE.md component patterns) — the rate card.
  *
  * The schedule a customer or agent can see *before* money exists: under the
- * agent's store result and on the customer's pickup form. Every number is
- * the API's, verbatim (AD-10) — the SPA never derives a rate from the
- * tiers. Contrast with ChargeSummary, which prices an actual stay after
+ * agent's store form and on the customer's pickup form. One block per size —
+ * the fee from pricing_config times the domain tiers, served fully priced —
+ * and every number is the API's, verbatim (AD-10); the SPA never derives a
+ * rate. Contrast with ChargeSummary, which prices an actual stay after
  * retrieval; this card only states the policy.
  */
 
@@ -19,9 +20,15 @@ export interface PricingTierDisplayRow {
   perDay: number;
 }
 
-export interface StorageRatesProps {
+/** One size's block as GET /pricing serves it. */
+export interface SizePricingDisplayRow {
+  size: string;
   baseFee: number;
   tiers: readonly PricingTierDisplayRow[];
+}
+
+export interface StorageRatesProps {
+  sizes: readonly SizePricingDisplayRow[];
   className?: string;
 }
 
@@ -32,23 +39,39 @@ function dayRange(row: PricingTierDisplayRow): string {
   return `Days ${row.fromDay}–${row.toDay}`;
 }
 
-export function StorageRates({ baseFee, tiers, className }: StorageRatesProps) {
+export function StorageRates({ sizes, className }: StorageRatesProps) {
   return (
     <div
       className={cn('rounded-lg border border-border bg-card px-5 py-4', className)}
       aria-label="Storage rates"
     >
-      <Eyebrow>Storage rates · {baseFee} / day base</Eyebrow>
+      <Eyebrow>Storage rates</Eyebrow>
 
-      {tiers.map((row) => (
-        <div
-          key={row.tier}
-          className="flex justify-between border-b border-border py-2.5 font-sans text-[15px] text-foreground last:border-b-0"
-        >
-          <span>{dayRange(row)}</span>
-          <span className="tabular-nums">{row.perDay} / day</span>
-        </div>
-      ))}
+      <div
+        className={cn(
+          'mt-2 grid gap-x-6 gap-y-4',
+          // One block (the selected size) spans the card; three sit side by side.
+          sizes.length > 1 && 'sm:grid-cols-3',
+        )}
+      >
+        {sizes.map((block) => (
+          <div key={block.size} aria-label={`Storage rates · ${block.size}`}>
+            <Eyebrow>
+              {block.size} · {block.baseFee} / day base
+            </Eyebrow>
+
+            {block.tiers.map((row) => (
+              <div
+                key={row.tier}
+                className="flex justify-between border-b border-border py-2.5 font-sans text-[15px] text-foreground last:border-b-0"
+              >
+                <span>{dayRange(row)}</span>
+                <span className="tabular-nums">{row.perDay} / day</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

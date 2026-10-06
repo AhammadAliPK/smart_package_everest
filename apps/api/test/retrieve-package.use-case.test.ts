@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import type { LockerSize } from '@locker/domain';
+
+import type { PricingConfigRepository } from '../src/application/ports/pricing-config-repository.js';
 import type {
   PackageAllocation,
   PackageAllocationRequest,
@@ -11,10 +14,11 @@ import { RetrievePackage } from '../src/application/use-cases/retrieve-package.j
 /**
  * Unit tests for the `RetrievePackage` use case (FR7–FR9).
  *
- * The port is a scripted mock: these tests pin the use case's own duties —
- * validating the request shape, pricing the stay via the injected base fee
- * (AD-5) and passing the four outcome errors through untouched — while the
- * integration suites prove the real transaction.
+ * Both ports are scripted mocks: these tests pin the use case's own duties —
+ * validating the request shape, pricing the stay via the fee the pricing
+ * config resolves for the locker's size (AD-5) and passing the four outcome
+ * errors through untouched — while the integration suites prove the real
+ * transaction.
  */
 
 const STORED_AT = new Date('2026-09-07T09:15:00.000Z');
@@ -25,6 +29,7 @@ class ScriptedPackageRepository implements PackageRepository {
   /** What the scripted transaction will return — or the error it raises. */
   result: PackageRetrieval | Error = {
     lockerId: 'K7Q4M2',
+    size: 'SMALL',
     storedAt: STORED_AT,
     retrievedAt: RETRIEVED_AT,
   };
@@ -48,22 +53,37 @@ class ScriptedPackageRepository implements PackageRepository {
   }
 }
 
-function makeUseCase(baseFee = 10) {
+class ScriptedPricingConfig implements PricingConfigRepository {
+  readonly feeCalls: LockerSize[] = [];
+  /** The seeded fees (SMALL keeps the historical default 10). */
+  fees: Record<LockerSize, number> = { SMALL: 10, MEDIUM: 15, LARGE: 20 };
+
+  async getBaseFee(size: LockerSize): Promise<number> {
+    this.feeCalls.push(size);
+    return this.fees[size];
+  }
+}
+
+function makeUseCase() {
   const packages = new ScriptedPackageRepository();
+  const pricingConfig = new ScriptedPricingConfig();
   return {
     packages,
-    retrievePackage: new RetrievePackage(packages, baseFee),
+    pricingConfig,
+    retrievePackage: new RetrievePackage(packages, pricingConfig),
   };
 }
 
 describe('RetrievePackage use case', () => {
   it('returns the retrieval facts plus the tiered charge for the stay', async () => {
-    const { retrievePackage } = makeUseCase(10);
+    const { retrievePackage, pricingConfig } = makeUseCase();
 
     const result = await retrievePackage.execute({
       lockerId: 'K7Q4M2',
       pickupCode: 'ABCDEFGH',
     });
+
+    expect(pricingConfig.feeCalls).toEqual(['SMALL']);
 
     expect(result).toEqual({
       lockerId: 'K7Q4M2',
@@ -84,16 +104,23 @@ describe('RetrievePackage use case', () => {
     ]);
   });
 
-  it('prices with the injected base fee (X=7 → 49 for six days)', async () => {
-    const { retrievePackage } = makeUseCase(7);
+  it('prices a MEDIUM stay with the MEDIUM fee, not the SMALL default', async () => {
+    const { packages, retrievePackage, pricingConfig } = makeUseCase();
+    packages.result = {
+      lockerId: 'K7Q4M2',
+      size: 'MEDIUM',
+      storedAt: STORED_AT,
+      retrievedAt: RETRIEVED_AT,
+    };
 
     const result = await retrievePackage.execute({
       lockerId: 'K7Q4M2',
       pickupCode: 'ABCDEFGH',
     });
 
-    expect(result.storageCharge).toBe(5 * 7 + 1 * 14);
-    expect(result.breakdown.map((row) => row.rate)).toEqual([7, 14]);
+    expect(pricingConfig.feeCalls).toEqual(['MEDIUM']);
+    expect(result.storageCharge).toBe(5 * 15 + 1 * 30); // 105
+    expect(result.breakdown.map((row) => row.rate)).toEqual([15, 30]);
   });
 
   it.each([

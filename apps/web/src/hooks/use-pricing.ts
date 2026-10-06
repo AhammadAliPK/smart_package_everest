@@ -26,14 +26,20 @@ function isPricingReply(value: unknown): value is PricingReply {
   if (typeof value !== 'object' || value === null) return false;
   const reply = value as Partial<PricingReply>;
   return (
-    typeof reply.baseFee === 'number' &&
-    Array.isArray(reply.tiers) &&
-    reply.tiers.every(
-      (row) =>
-        typeof row?.tier === 'number' &&
-        typeof row?.fromDay === 'number' &&
-        (typeof row?.toDay === 'number' || row?.toDay === null) &&
-        typeof row?.perDay === 'number',
+    Array.isArray(reply.sizes) &&
+    reply.sizes.length > 0 &&
+    reply.sizes.every(
+      (block) =>
+        typeof block?.size === 'string' &&
+        typeof block?.baseFee === 'number' &&
+        Array.isArray(block?.tiers) &&
+        block.tiers.every(
+          (row) =>
+            typeof row?.tier === 'number' &&
+            typeof row?.fromDay === 'number' &&
+            (typeof row?.toDay === 'number' || row?.toDay === null) &&
+            typeof row?.perDay === 'number',
+        ),
     )
   );
 }

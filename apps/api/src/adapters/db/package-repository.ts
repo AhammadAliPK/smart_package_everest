@@ -32,9 +32,10 @@ interface CandidateRow {
   size: LockerSize;
 }
 
-/** The raw row the retrieval resolve join returns (AD-6). */
+/** The raw row the retrieval resolve join returns (AD-6, FR9 ext). */
 interface StoredRow {
   package_id: string;
+  size: LockerSize;
   stored_at: Date;
 }
 
@@ -191,7 +192,7 @@ async function retrieveWithin(
   pickupCode: string,
 ): Promise<PackageRetrieval> {
   const stored = await tx.$queryRaw<StoredRow[]>`
-    SELECT p.id AS package_id, p.stored_at AS stored_at
+    SELECT p.id AS package_id, l.size AS size, p.stored_at AS stored_at
     FROM "locker" l
     JOIN "stored_package" p ON p.id = l.occupied_by
     WHERE l.id = ${lockerId} AND p.pickup_code = ${pickupCode} AND p.status = 'STORED'
@@ -213,7 +214,7 @@ async function retrieveWithin(
     throw new InvalidPickupCodeError(lockerId);
   }
 
-  const { package_id: packageId, stored_at: storedAt } = stored[0]!;
+  const { package_id: packageId, size, stored_at: storedAt } = stored[0]!;
 
   // One clock for both pricing endpoints: `storedAt` is written by Postgres
   // (`default(now())`), so `retrievedAt` is read from Postgres too — mixing
@@ -239,5 +240,5 @@ async function retrieveWithin(
     data: { status: 'RETRIEVED', retrievedAt },
   });
 
-  return { lockerId, storedAt, retrievedAt };
+  return { lockerId, size, storedAt, retrievedAt };
 }

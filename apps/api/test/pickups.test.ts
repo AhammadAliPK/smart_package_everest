@@ -132,7 +132,7 @@ describe('POST /pickups (integration)', () => {
     ).toBe(false);
   });
 
-  it('prices with the env-injected base fee (STORAGE_FEE_BASE=7)', async () => {
+  it('prices from pricing_config, falling back to STORAGE_FEE_BASE only when the row is gone', async () => {
     await truncateAll();
     const localApp = await buildApp(
       {
@@ -144,31 +144,49 @@ describe('POST /pickups (integration)', () => {
     );
 
     try {
-      const created = await localApp.inject({
-        method: 'POST',
-        url: '/lockers',
-        payload: { size: 'SMALL' },
-      });
-      expect(created.statusCode).toBe(201);
-      const stored = await localApp.inject({
-        method: 'POST',
-        url: '/packages',
-        payload: { size: 'SMALL' },
-      });
-      expect(stored.statusCode).toBe(201);
-      const { lockerId, pickupCode } = stored.json() as {
-        lockerId: string;
-        pickupCode: string;
+      /** Store + same-day pickup of one `size` → its one-day charge. */
+      const pickUpSameDay = async (size: 'SMALL' | 'MEDIUM') => {
+        const created = await localApp.inject({
+          method: 'POST',
+          url: '/lockers',
+          payload: { size },
+        });
+        expect(created.statusCode).toBe(201);
+        const stored = await localApp.inject({
+          method: 'POST',
+          url: '/packages',
+          payload: { size },
+        });
+        expect(stored.statusCode).toBe(201);
+        const { lockerId, pickupCode } = stored.json() as {
+          lockerId: string;
+          pickupCode: string;
+        };
+        const response = await localApp.inject({
+          method: 'POST',
+          url: '/pickups',
+          payload: { lockerId, pickupCode },
+        });
+        expect(response.statusCode).toBe(200);
+        return response.json() as {
+          storageCharge: number;
+          daysCharged: number;
+          breakdown: { rate: number }[];
+        };
       };
 
-      const response = await localApp.inject({
-        method: 'POST',
-        url: '/pickups',
-        payload: { lockerId, pickupCode },
+      // Seeded rows win over env: SMALL charges 10 even though
+      // STORAGE_FEE_BASE is 7 — and MEDIUM prices above SMALL.
+      expect(await pickUpSameDay('SMALL')).toMatchObject({
+        storageCharge: 10,
+        daysCharged: 1,
+        breakdown: [{ tier: 1, days: 1, rate: 10, amount: 10 }],
       });
+      expect((await pickUpSameDay('MEDIUM')).storageCharge).toBe(15);
 
-      expect(response.statusCode).toBe(200);
-      expect(response.json()).toMatchObject({
+      // A missing row degrades to the env fallback, never a failed pickup.
+      await getTestPrisma().pricingConfig.deleteMany();
+      expect(await pickUpSameDay('SMALL')).toMatchObject({
         storageCharge: 7,
         daysCharged: 1,
         breakdown: [{ tier: 1, days: 1, rate: 7, amount: 7 }],

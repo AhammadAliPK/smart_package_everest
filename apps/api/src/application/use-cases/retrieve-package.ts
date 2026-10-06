@@ -6,6 +6,7 @@ import {
 
 import { InvalidRetrievalRequestError } from '../errors.js';
 import type { PackageRepository } from '../ports/package-repository.js';
+import type { PricingConfigRepository } from '../ports/pricing-config-repository.js';
 
 /** What the HTTP layer hands the use case — unvalidated, as received. */
 export interface RetrievePackageCommand {
@@ -29,13 +30,14 @@ export interface RetrievePackageResult {
  * Validates the request shape, delegates the state change to the retrieval
  * transaction (which either frees the locker and flips the package to
  * RETRIEVED atomically, or raises one of the three calm outcome errors
- * having written nothing), then prices the stay with the pure policy and
- * the injected base fee (FR9, AD-5).
+ * having written nothing), then prices the stay with the pure policy at
+ * the *locker's size* base fee (FR9, AD-5 + the size-based extension): the
+ * transaction reply carries the size, the pricing config resolves its fee.
  */
 export class RetrievePackage {
   constructor(
     private readonly packages: PackageRepository,
-    private readonly storageFeeBase: number,
+    private readonly pricingConfig: PricingConfigRepository,
   ) {}
 
   async execute(command: RetrievePackageCommand): Promise<RetrievePackageResult> {
@@ -63,10 +65,11 @@ export class RetrievePackage {
       normalizedLockerId,
       pickupCode,
     );
+    const baseFee = await this.pricingConfig.getBaseFee(retrieval.size);
     const charge = StoragePricingPolicy.charge(
       retrieval.storedAt,
       retrieval.retrievedAt,
-      this.storageFeeBase,
+      baseFee,
     );
 
     return {

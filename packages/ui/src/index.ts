@@ -36,6 +36,7 @@ export { ResultCard, type ResultCardProps } from './components/result-card.js';
 export {
   StorageRates,
   type PricingTierDisplayRow,
+  type SizePricingDisplayRow,
   type StorageRatesProps,
 } from './components/storage-rates.js';
 export { CodeInput, type CodeInputProps } from './components/code-input.js';

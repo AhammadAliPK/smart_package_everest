@@ -4,11 +4,13 @@ import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 import type { LockerRepository } from '../../application/ports/locker-repository.js';
 import type { PackageRepository } from '../../application/ports/package-repository.js';
+import type { PricingConfigRepository } from '../../application/ports/pricing-config-repository.js';
 import type { Env } from '../../config/env.js';
 import type { PrismaClient } from '../db/generated/prisma/client.js';
 import { createPrismaClient } from '../db/prisma.js';
 import { PrismaLockerRepository } from '../db/locker-repository.js';
 import { PrismaPackageRepository } from '../db/package-repository.js';
+import { PrismaPricingConfigRepository } from '../db/pricing-config-repository.js';
 import { registerErrorMapper } from './error-mapper.js';
 import { registerOpenApi } from './plugins/openapi.js';
 import { healthRoutes } from './routes/health.js';
@@ -31,6 +33,7 @@ export interface BuildAppOptions {
    */
   readonly lockerRepository?: LockerRepository;
   readonly packageRepository?: PackageRepository;
+  readonly pricingConfigRepository?: PricingConfigRepository;
   readonly prisma?: PrismaClient;
 }
 
@@ -59,6 +62,11 @@ export async function buildApp(
     options.lockerRepository ?? new PrismaLockerRepository(prisma);
   const packageRepository =
     options.packageRepository ?? new PrismaPackageRepository(prisma);
+  // `env.storageFeeBase` survives as the missing-row fallback: pricing
+  // config gaps degrade to the historical flat fee, never a failed pickup.
+  const pricingConfigRepository =
+    options.pricingConfigRepository ??
+    new PrismaPricingConfigRepository(prisma, env.storageFeeBase);
 
   app.addHook('onClose', async () => {
     await prisma.$disconnect();
@@ -85,9 +93,11 @@ export async function buildApp(
   await app.register(packageRoutes, { packageRepository });
   await app.register(pickupRoutes, {
     packageRepository,
-    storageFeeBase: env.storageFeeBase,
+    pricingConfig: pricingConfigRepository,
   });
-  await app.register(pricingRoutes, { storageFeeBase: env.storageFeeBase });
+  await app.register(pricingRoutes, {
+    pricingConfig: pricingConfigRepository,
+  });
 
   return app;
 }

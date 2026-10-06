@@ -204,11 +204,7 @@ export function RetrievePage() {
               is still typing. The actual charge lands in the ChargeSummary
               after retrieval — verbatim from the API either way (AD-10). */}
           {pricing ? (
-            <StorageRates
-              className="mt-6"
-              baseFee={pricing.baseFee}
-              tiers={pricing.tiers}
-            />
+            <StorageRates className="mt-6" sizes={pricing.sizes} />
           ) : null}
         </form>
       )}

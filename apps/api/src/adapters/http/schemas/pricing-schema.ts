@@ -1,14 +1,17 @@
 import { Type, type Static } from '@sinclair/typebox';
 
+import { lockerSizeSchema } from './locker-schema.js';
+
 /**
- * Contract-first schemas for `GET /pricing` (AD-1).
+ * Contract-first schemas for `GET /pricing` (AD-1, FR9 size-based extension).
  *
- * The rate card the UI renders verbatim (AD-10): the operator's base fee
- * plus one row per pricing tier, boundaries and all, so a client never
- * derives a rate itself. `toDay: null` marks the open-ended final tier.
+ * One fully-priced block per declared size — the fee from `pricing_config`
+ * times the domain tier multipliers — so a client renders the card verbatim
+ * without deriving a rate (AD-10). `toDay: null` marks the open-ended final
+ * tier.
  */
 
-/** One tier of the published schedule. */
+/** One tier of a size's schedule. */
 export const pricingTierSchema = Type.Object(
   {
     tier: Type.Integer({
@@ -35,17 +38,27 @@ export const pricingTierSchema = Type.Object(
   { additionalProperties: false },
 );
 
-/** `GET /pricing` 200 response. */
-export const pricingReplySchema = Type.Object(
+/** One size's rate card. */
+export const sizePricingSchema = Type.Object(
   {
+    size: lockerSizeSchema,
     baseFee: Type.Integer({
       minimum: 1,
-      description: 'STORAGE_FEE_BASE — the tier-1 per-day rate (default 10).',
+      description: "This size's tier-1 per-day rate, from pricing_config.",
     }),
     tiers: Type.Array(pricingTierSchema, { minItems: 1 }),
   },
   { additionalProperties: false },
 );
 
+/** `GET /pricing` 200 response — a block per declared size. */
+export const pricingReplySchema = Type.Object(
+  {
+    sizes: Type.Array(sizePricingSchema, { minItems: 1 }),
+  },
+  { additionalProperties: false },
+);
+
 export type PricingTierReply = Static<typeof pricingTierSchema>;
+export type SizePricingReply = Static<typeof sizePricingSchema>;
 export type PricingReply = Static<typeof pricingReplySchema>;

@@ -82,6 +82,17 @@ export async function truncateAll(): Promise<void> {
   await prisma.$executeRawUnsafe(
     `TRUNCATE TABLE ${quoted} RESTART IDENTITY CASCADE`,
   );
+
+  // pricing_config is seeded configuration, not per-test transactional data:
+  // re-seed it so every suite starts from the canonical rate card the
+  // migration ships (suites may delete rows to prove the env fallback).
+  await prisma.pricingConfig.createMany({
+    data: [
+      { size: 'SMALL', baseFee: 10 },
+      { size: 'MEDIUM', baseFee: 15 },
+      { size: 'LARGE', baseFee: 20 },
+    ],
+  });
 }
 
 /** Close the shared client — call once in `afterAll`. */

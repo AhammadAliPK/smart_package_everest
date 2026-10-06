@@ -239,17 +239,20 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @description STORAGE_FEE_BASE — the tier-1 per-day rate (default 10). */
-                            baseFee: number;
-                            tiers: {
-                                /** @description The tier — ascending with the stay length. */
-                                tier: number;
-                                /** @description First day this tier covers (inclusive). */
-                                fromDay: number;
-                                /** @description Last day this tier covers, or null for the final tier. */
-                                toDay: number | null;
-                                /** @description Per-day rate in integer units (AD-5). */
-                                perDay: number;
+                            sizes: {
+                                size: "SMALL" | "MEDIUM" | "LARGE";
+                                /** @description This size's tier-1 per-day rate, from pricing_config. */
+                                baseFee: number;
+                                tiers: {
+                                    /** @description The tier — ascending with the stay length. */
+                                    tier: number;
+                                    /** @description First day this tier covers (inclusive). */
+                                    fromDay: number;
+                                    /** @description Last day this tier covers, or null for the final tier. */
+                                    toDay: number | null;
+                                    /** @description Per-day rate in integer units (AD-5). */
+                                    perDay: number;
+                                }[];
                             }[];
                         };
                     };

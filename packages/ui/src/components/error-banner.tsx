@@ -1,12 +1,14 @@
 /**
  * ErrorBanner (EXPERIENCE.md Component Patterns).
  *
- * Calm, blame-free, physical-world copy only. Renders *above* the submit
- * button, politely announced, never destructive-red — a capacity refusal is
- * an operational fact, not an alarm. The caller owns the copy (mapped from
- * the AD-7 code); this component only renders it.
+ * Calm, blame-free, physical-world copy only — but the chrome is refusal
+ * red, so a refusal can never be mistaken for a neutral card (feedback
+ * 2026-10-05: the capacity banner was invisible next to the form cards).
+ * Renders *above* the submit button, politely announced. The caller owns
+ * the copy (mapped from the AD-7 code); this component only renders it.
  */
 
+import { CircleAlert } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '../lib/cn.js';
@@ -24,14 +26,17 @@ export function ErrorBanner({ children, action, className, ...rest }: ErrorBanne
       role="status"
       aria-live="polite"
       className={cn(
-        'rounded-md border border-border bg-card px-4 py-3',
-        'font-sans text-sm text-foreground',
+        'flex gap-2.5 rounded-md border border-error-edge bg-error-wash px-4 py-3',
+        'font-sans text-sm text-error',
         className,
       )}
       {...rest}
     >
-      <p>{children}</p>
-      {action ? <div className="mt-2">{action}</div> : null}
+      <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <div className="min-w-0">
+        <p>{children}</p>
+        {action ? <div className="mt-2">{action}</div> : null}
+      </div>
     </div>
   );
 }

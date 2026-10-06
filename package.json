@@ -20,6 +20,9 @@
     "test:report": "node scripts/test-report.mjs",
     "lint": "turbo run lint",
     "dev": "turbo run dev",
+    "dev:db": "docker compose up -d postgres",
+    "dev:api": "pnpm --filter @locker/api dev",
+    "dev:web": "pnpm --filter @locker/web dev",
     "db:migrate": "turbo run db:migrate",
     "check:boundaries": "node scripts/check-boundaries.mjs"
   },

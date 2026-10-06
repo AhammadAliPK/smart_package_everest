@@ -379,57 +379,93 @@
                   "additionalProperties": false,
                   "type": "object",
                   "required": [
-                    "baseFee",
-                    "tiers"
+                    "sizes"
                   ],
                   "properties": {
-                    "baseFee": {
-                      "minimum": 1,
-                      "description": "STORAGE_FEE_BASE — the tier-1 per-day rate (default 10).",
-                      "type": "integer"
-                    },
-                    "tiers": {
+                    "sizes": {
                       "minItems": 1,
                       "type": "array",
                       "items": {
                         "additionalProperties": false,
                         "type": "object",
                         "required": [
-                          "tier",
-                          "fromDay",
-                          "toDay",
-                          "perDay"
+                          "size",
+                          "baseFee",
+                          "tiers"
                         ],
                         "properties": {
-                          "tier": {
-                            "minimum": 1,
-                            "maximum": 3,
-                            "description": "The tier — ascending with the stay length.",
-                            "type": "integer"
-                          },
-                          "fromDay": {
-                            "minimum": 1,
-                            "description": "First day this tier covers (inclusive).",
-                            "type": "integer"
-                          },
-                          "toDay": {
-                            "description": "Last day this tier covers, or null for the final tier.",
+                          "size": {
                             "anyOf": [
                               {
-                                "minimum": 2,
-                                "description": "Last day this tier covers.",
-                                "type": "integer"
+                                "type": "string",
+                                "enum": [
+                                  "SMALL"
+                                ]
                               },
                               {
-                                "description": "Open-ended — the final tier.",
-                                "type": "null"
+                                "type": "string",
+                                "enum": [
+                                  "MEDIUM"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "LARGE"
+                                ]
                               }
                             ]
                           },
-                          "perDay": {
+                          "baseFee": {
                             "minimum": 1,
-                            "description": "Per-day rate in integer units (AD-5).",
+                            "description": "This size's tier-1 per-day rate, from pricing_config.",
                             "type": "integer"
+                          },
+                          "tiers": {
+                            "minItems": 1,
+                            "type": "array",
+                            "items": {
+                              "additionalProperties": false,
+                              "type": "object",
+                              "required": [
+                                "tier",
+                                "fromDay",
+                                "toDay",
+                                "perDay"
+                              ],
+                              "properties": {
+                                "tier": {
+                                  "minimum": 1,
+                                  "maximum": 3,
+                                  "description": "The tier — ascending with the stay length.",
+                                  "type": "integer"
+                                },
+                                "fromDay": {
+                                  "minimum": 1,
+                                  "description": "First day this tier covers (inclusive).",
+                                  "type": "integer"
+                                },
+                                "toDay": {
+                                  "description": "Last day this tier covers, or null for the final tier.",
+                                  "anyOf": [
+                                    {
+                                      "minimum": 2,
+                                      "description": "Last day this tier covers.",
+                                      "type": "integer"
+                                    },
+                                    {
+                                      "description": "Open-ended — the final tier.",
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "perDay": {
+                                  "minimum": 1,
+                                  "description": "Per-day rate in integer units (AD-5).",
+                                  "type": "integer"
+                                }
+                              }
+                            }
                           }
                         }
                       }

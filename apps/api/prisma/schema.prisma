@@ -79,3 +79,18 @@ model StoredPackage {
 
   @@map("stored_package")
 }
+
+// Per-size base storage fee (FR9 extension: size-based pricing). One row per
+// locker size, seeded by the migration that creates the table — SMALL keeps
+// the historical default (STORAGE_FEE_BASE=10) so existing behaviour and
+// tests are unchanged; MEDIUM/LARGE demonstrate the differentiation. The
+// tier multipliers (×1/×2/×3) stay in @locker/domain: they are policy, not
+// configuration. Retrieval prices a stay with the *locker's* row; a missing
+// row falls back to STORAGE_FEE_BASE so a half-seeded DB can never break a
+// pickup.
+model PricingConfig {
+  size    LockerSize @id
+  baseFee Int        @map("base_fee")
+
+  @@map("pricing_config")
+}

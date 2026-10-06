@@ -20,6 +20,8 @@ export interface PackageAllocation {
 export interface PackageRetrieval {
   /** The locker the package came out of (AD-9). */
   readonly lockerId: string;
+  /** The locker's size — prices the stay per the size-based fee (FR9 ext). */
+  readonly size: LockerSize;
   /** Exact storage instant, returned so the use case can price the stay (AD-5). */
   readonly storedAt: Date;
   /** The instant the retrieval transaction committed. */

@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import type { LockerSize } from '@locker/domain';
+
 import { buildApp } from '../src/adapters/http/app.js';
 import type { Env } from '../src/config/env.js';
 import {
@@ -54,24 +56,25 @@ describe('POST /pickups — charges from recorded storedAt (integration)', () =>
     await closeTestPrisma();
   });
 
-  /** Store one package, backdate it by days+minutes, then pick it up. */
+  /** Store one package of `size`, backdate it by days+minutes, then pick it up. */
   async function pickUpBackdated(
     days: number,
     minutes: number,
+    size: LockerSize = 'SMALL',
   ): Promise<{ status: number; body: Record<string, unknown> }> {
     const prisma = getTestPrisma();
 
     const created = await app!.inject({
       method: 'POST',
       url: '/lockers',
-      payload: { size: 'SMALL' },
+      payload: { size },
     });
     expect(created.statusCode).toBe(201);
 
     const stored = await app!.inject({
       method: 'POST',
       url: '/packages',
-      payload: { size: 'SMALL' },
+      payload: { size },
     });
     expect(stored.statusCode).toBe(201);
     const { lockerId, pickupCode } = stored.json() as {
@@ -113,6 +116,17 @@ describe('POST /pickups — charges from recorded storedAt (integration)', () =>
       expect(body.breakdown).toEqual(expectedBreakdown(testCase.daysCharged, 10));
     },
   );
+
+  it('charges a MEDIUM stay with the MEDIUM fee end to end (seeded pricing_config)', async () => {
+    await truncateAll();
+
+    const { status, body } = await pickUpBackdated(6, -1, 'MEDIUM');
+
+    expect(status).toBe(200);
+    expect(body.daysCharged).toBe(6);
+    expect(body.storageCharge).toBe(5 * 15 + 1 * 30); // 105
+    expect(body.breakdown).toEqual(expectedBreakdown(6, 15));
+  });
 
   it('spreads a 12-day stay across all three tiers with reconciling rows', async () => {
     await truncateAll();

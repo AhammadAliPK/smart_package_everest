@@ -1,11 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import type { Locker, LockerRepository } from '../src/application/ports/locker-repository.js';
+import type { PricingConfigRepository } from '../src/application/ports/pricing-config-repository.js';
 import type { LockerSize } from '@locker/domain';
 import { buildApp } from '../src/adapters/http/app.js';
 import type { Env } from '../src/config/env.js';
 
-/** The rate card is static metadata: an in-memory port keeps this suite DB-free. */
+/** The rate card is a read: in-memory ports keep this suite DB-free. */
 class UnusedLockerRepository implements LockerRepository {
   async create(
     size: LockerSize,
@@ -19,17 +20,22 @@ class UnusedLockerRepository implements LockerRepository {
   }
 }
 
-/** The exact 200 body the default base fee (10) must produce. */
-const EXPECTED_AT_10 = {
-  baseFee: 10,
-  tiers: [
-    { tier: 1, fromDay: 1, toDay: 5, perDay: 10 },
-    { tier: 2, fromDay: 6, toDay: 10, perDay: 20 },
-    { tier: 3, fromDay: 11, toDay: null, perDay: 30 },
-  ],
+/** Fees as the seeded migration ships them (SMALL keeps the default 10). */
+const SEEDED_FEES: Record<LockerSize, number> = {
+  SMALL: 10,
+  MEDIUM: 15,
+  LARGE: 20,
 };
 
-describe('GET /pricing (FR9 rate card)', () => {
+class InMemoryPricingConfig implements PricingConfigRepository {
+  constructor(private readonly fees: Record<LockerSize, number>) {}
+
+  async getBaseFee(size: LockerSize): Promise<number> {
+    return this.fees[size];
+  }
+}
+
+describe('GET /pricing (FR9 size-based rate card)', () => {
   let app: Awaited<ReturnType<typeof buildApp>> | undefined;
 
   beforeAll(async () => {
@@ -39,7 +45,11 @@ describe('GET /pricing (FR9 rate card)', () => {
         port: 0,
         storageFeeBase: 10,
       } satisfies Env,
-      { logger: false, lockerRepository: new UnusedLockerRepository() },
+      {
+        logger: false,
+        lockerRepository: new UnusedLockerRepository(),
+        pricingConfigRepository: new InMemoryPricingConfig(SEEDED_FEES),
+      },
     );
   });
 
@@ -47,51 +57,73 @@ describe('GET /pricing (FR9 rate card)', () => {
     await app?.close();
   });
 
-  it('serves the base fee and the three stacking tiers, nothing else', async () => {
+  it('serves one fully-priced block per size, nothing else', async () => {
     const response = await app!.inject({ method: 'GET', url: '/pricing' });
 
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toContain('application/json');
     // toEqual (not toMatchObject): the contract is closed — any extra field
     // the route ever grows must be a deliberate schema change, not drift.
-    expect(response.json()).toEqual(EXPECTED_AT_10);
+    expect(response.json()).toEqual({
+      sizes: [
+        {
+          size: 'SMALL',
+          baseFee: 10,
+          tiers: [
+            { tier: 1, fromDay: 1, toDay: 5, perDay: 10 },
+            { tier: 2, fromDay: 6, toDay: 10, perDay: 20 },
+            { tier: 3, fromDay: 11, toDay: null, perDay: 30 },
+          ],
+        },
+        {
+          size: 'MEDIUM',
+          baseFee: 15,
+          tiers: [
+            { tier: 1, fromDay: 1, toDay: 5, perDay: 15 },
+            { tier: 2, fromDay: 6, toDay: 10, perDay: 30 },
+            { tier: 3, fromDay: 11, toDay: null, perDay: 45 },
+          ],
+        },
+        {
+          size: 'LARGE',
+          baseFee: 20,
+          tiers: [
+            { tier: 1, fromDay: 1, toDay: 5, perDay: 20 },
+            { tier: 2, fromDay: 6, toDay: 10, perDay: 40 },
+            { tier: 3, fromDay: 11, toDay: null, perDay: 60 },
+          ],
+        },
+      ],
+    });
   });
 
-  it('reconciles with what POST /pickups actually charges', async () => {
-    // The rate card a customer sees before retrieving must be the card the
-    // retrieval itself prices by: tier 1's perDay is the base fee, and the
-    // tiers escalate ×1/×2/×3 — the same multipliers the charge breakdown
-    // carries (see pickup-charges.test.ts).
-    const { tiers } = (await app!.inject({ method: 'GET', url: '/pricing' }))
-      .json() as typeof EXPECTED_AT_10;
-
-    expect(tiers.map((row) => row.perDay)).toEqual([10, 20, 30]);
-    expect(tiers[0]!.perDay).toBe(EXPECTED_AT_10.baseFee);
-  });
-
-  it('honours a non-default STORAGE_FEE_BASE', async () => {
-    const other = await buildApp(
+  it('reflects a fee change without a deploy — configuration, not policy', async () => {
+    const repriced = await buildApp(
       {
         databaseUrl: 'postgres://unused:unused@localhost:5432/unused',
         port: 0,
-        storageFeeBase: 7,
+        storageFeeBase: 10,
       } satisfies Env,
-      { logger: false, lockerRepository: new UnusedLockerRepository() },
+      {
+        logger: false,
+        lockerRepository: new UnusedLockerRepository(),
+        pricingConfigRepository: new InMemoryPricingConfig({
+          ...SEEDED_FEES,
+          LARGE: 25,
+        }),
+      },
     );
     try {
-      const response = await other.inject({ method: 'GET', url: '/pricing' });
+      const response = await repriced.inject({ method: 'GET', url: '/pricing' });
+      const { sizes } = response.json() as {
+        sizes: { size: string; baseFee: number }[];
+      };
 
       expect(response.statusCode).toBe(200);
-      expect(response.json()).toEqual({
-        baseFee: 7,
-        tiers: [
-          { tier: 1, fromDay: 1, toDay: 5, perDay: 7 },
-          { tier: 2, fromDay: 6, toDay: 10, perDay: 14 },
-          { tier: 3, fromDay: 11, toDay: null, perDay: 21 },
-        ],
-      });
+      expect(sizes.find((s) => s.size === 'LARGE')?.baseFee).toBe(25);
+      expect(sizes.find((s) => s.size === 'SMALL')?.baseFee).toBe(10);
     } finally {
-      await other.close();
+      await repriced.close();
     }
   });
 
@@ -106,7 +138,9 @@ describe('GET /pricing (FR9 rate card)', () => {
     const get = document.paths['/pricing']?.get;
     expect(get).toBeDefined();
     expect(Object.keys(get?.responses ?? {})).toContain('200');
-    expect(JSON.stringify(get)).toContain('baseFee');
-    expect(JSON.stringify(get)).toContain('perDay');
+    const schemaText = JSON.stringify(get);
+    expect(schemaText).toContain('baseFee');
+    expect(schemaText).toContain('perDay');
+    expect(schemaText).toContain('MEDIUM');
   });
 });

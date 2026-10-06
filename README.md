@@ -157,7 +157,7 @@ npx pnpm@12.4.1 --filter @locker/web dev   # Vite :5173 (same-origin proxy)
 |---|---|---|
 | `DATABASE_URL` | — | Postgres connection string |
 | `PORT` | `3000` | API listen port |
-| `STORAGE_FEE_BASE` | `10` | Whole-unit base fee per 24 h day (AD-5) |
+| `STORAGE_FEE_BASE` | `10` | Fallback base fee per 24 h day (AD-5) when a size has no `pricing_config` row |
 | `CORS_ORIGIN` | unset | Comma-separated origins; unset = CORS plugin not registered |
 | `TEST_DATABASE_URL` | → `DATABASE_URL` | Where integration suites truncate |
 
@@ -210,7 +210,7 @@ tokens, so the UI can't silently drift from the design system.
 | `GET /lockers` | Availability list, ordered by id | — |
 | `POST /packages` | Store into the smallest fitting locker → `lockerId` + `pickupCode` | `NO_SUITABLE_LOCKER` 409 |
 | `POST /pickups` | Retrieve with id + code → charge ledger | see below |
-| `GET /pricing` | Storage rate card — base fee + tier schedule, served verbatim to the UI | — |
+| `GET /pricing` | Rate card per size (`pricing_config` fee × tier multipliers), served verbatim to the UI | — |
 
 Every error is one envelope (AD-7): `{"error":{"code","message"}}` — calm codes,
 mapped in exactly one place, and the UI never shows raw errors.
@@ -225,8 +225,10 @@ mapped in exactly one place, and the UI never shows raw errors.
 | `INTERNAL_ERROR` | 500 | Unexpected — logged, not leaked |
 
 Charges (AD-5): days = `ceil(elapsed/24h)`, tiers `1–5×X · 6–10×2X · 11+×3X`
-(`X = STORAGE_FEE_BASE`), returned as an itemised breakdown with the
-confirmation — computed server-side only.
+(`X` = the locker size's base fee from `pricing_config` — SMALL 10 ·
+MEDIUM 15 · LARGE 20 — falling back to `STORAGE_FEE_BASE` if the row is
+missing), returned as an itemised breakdown with the confirmation —
+computed server-side only.
 
 ---
 

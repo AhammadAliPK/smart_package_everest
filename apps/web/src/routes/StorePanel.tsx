@@ -110,7 +110,13 @@ export function StorePanel({ prefill, onStored }: StorePanelProps) {
           <div className="mt-1.5">
             <Select
               value={size ?? undefined}
-              onValueChange={(value) => setSize(value as LockerSizeValue)}
+              onValueChange={(value) => {
+                // Radix emits '' when a controlled value lands after mount
+                // (the prefill effect below); no item carries that value, so
+                // it is never a real selection — ignore it rather than wipe
+                // the agent's choice.
+                if (value !== '') setSize(value as LockerSizeValue);
+              }}
               disabled={pending}
             >
               <SelectTrigger id="store-package-size" aria-label="Package size">
@@ -204,13 +210,17 @@ export function StorePanel({ prefill, onStored }: StorePanelProps) {
 
       {/* What a stay costs, stated at every money-adjacent moment: while
           the agent fills the form and after the ResultCard lands above it.
-          The rate card is the API's verbatim (AD-10); the actual charge is
-          priced at retrieval. */}
+          The card follows the selected size (all three while none is chosen,
+          for comparison); numbers are the API's verbatim (AD-10) — the
+          actual charge is priced at retrieval. */}
       {pricing ? (
         <StorageRates
           className="mt-4"
-          baseFee={pricing.baseFee}
-          tiers={pricing.tiers}
+          sizes={
+            size === null
+              ? pricing.sizes
+              : pricing.sizes.filter((block) => block.size === size)
+          }
         />
       ) : null}
     </section>

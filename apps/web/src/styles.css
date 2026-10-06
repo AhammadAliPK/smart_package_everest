@@ -38,6 +38,12 @@
      (~9:1 on near-black). Verified in design-audit.test.ts. */
   --ring: #9c6400;
 
+  /* Refusal red — deep enough for AA on the wash (~6.5:1); the wash itself
+     is paper-warm so the banner still belongs to the palette. */
+  --error: #a02c1d;
+  --error-wash: #faf1ef;
+  --error-edge: #d49a8e;
+
   /* Light cards may carry a barely-there warm shadow on hover (DESIGN.md). */
   --hover-shadow: 0 1px 3px rgb(26 25 21 / 0.07);
 }
@@ -53,6 +59,12 @@
   --gold: #e0c9a6;
   /* The bright brand orange clears 3:1 comfortably on near-black. */
   --ring: #f5a100;
+
+  /* Refusal red, dark theme: a light coral (~8:1 on near-black) with a
+     tonal wash, matching the matte rule below. */
+  --error: #ff9280;
+  --error-wash: #22120e;
+  --error-edge: #5f2b22;
 
   /* Dark theme is matte: depth is tonal, never shadowed (DESIGN.md). */
   --hover-shadow: none;
@@ -84,6 +96,10 @@
   --color-cream-edge: var(--cream-edge);
   --color-glow: var(--glow);
   --color-ring: var(--ring);
+
+  --color-error: var(--error);
+  --color-error-wash: var(--error-wash);
+  --color-error-edge: var(--error-edge);
 
   --shadow-hover: var(--hover-shadow);
 }

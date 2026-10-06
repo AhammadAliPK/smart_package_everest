@@ -1,6 +1,7 @@
 import type { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 import type { PackageRepository } from '../../../application/ports/package-repository.js';
+import type { PricingConfigRepository } from '../../../application/ports/pricing-config-repository.js';
 import { RetrievePackage } from '../../../application/use-cases/retrieve-package.js';
 import {
   createPickupRequestSchema,
@@ -10,8 +11,8 @@ import {
 /** Dependencies the routes need — injected by `buildApp`. */
 export interface PickupRoutesOptions {
   readonly packageRepository: PackageRepository;
-  /** `STORAGE_FEE_BASE` from the validated env (AD-5, default 10). */
-  readonly storageFeeBase: number;
+  /** Resolves the per-size base fee at retrieval time (FR9 extension). */
+  readonly pricingConfig: PricingConfigRepository;
 }
 
 /**
@@ -24,8 +25,8 @@ export interface PickupRoutesOptions {
  * the same mapper. The reply serialises `retrievedAt` to ISO-8601 UTC.
  */
 export const pickupRoutes: FastifyPluginAsyncTypebox<PickupRoutesOptions> =
-  async (app, { packageRepository, storageFeeBase }) => {
-    const retrievePackage = new RetrievePackage(packageRepository, storageFeeBase);
+  async (app, { packageRepository, pricingConfig }) => {
+    const retrievePackage = new RetrievePackage(packageRepository, pricingConfig);
 
     app.post(
       '/pickups',
