@@ -50,4 +50,3 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = 'Button';
 
-// reusbale button component with variants for primary, secondary, and ghost styles, using class-variance-authority for styling and React.forwardRef for ref forwarding.
